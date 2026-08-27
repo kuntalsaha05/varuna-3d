@@ -4,13 +4,3 @@ uvicorn[standard]
 xarray
 netCDF4
 numpy
-pandas
-
-requests
-httpx
-
-pydantic
-python-dotenv
-
-scipy
-dask
