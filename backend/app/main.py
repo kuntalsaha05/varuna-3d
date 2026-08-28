@@ -1,40 +1,31 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.engine import VarunaDataEngine
-import os
+from app.api.v1.router import api_router
+from app.config import settings
 
-app = FastAPI(title="Varuna-3D Ocean API")
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Handle dataset path check on startup
-NC_PATH = os.path.join("data", "incois_model_sample.nc")
-engine = None
+app.include_router(api_router, prefix=settings.API_V1_STR)
 
-@app.on_event("startup")
-def load_engine():
-    global engine
-    if os.path.exists(NC_PATH):
-        engine = VarunaDataEngine(NC_PATH)
-    else:
-        print(f"Warning: Dataset not found at {NC_PATH}. Upload a file to test data slicing.")
+@app.get("/")
+def root():
+    return {
+        "title": settings.PROJECT_NAME,
+        "status": "online",
+        "docs_url": "/docs"
+    }
 
-@app.get("/api/v1/metadata")
-def metadata():
-    if not engine:
-        raise HTTPException(status_code=500, detail="NetCDF file not loaded in server.")
-    return engine.get_metadata()
-
-@app.get("/api/v1/slice/horizontal")
-def get_horizontal_slice(variable: str, depth: float, time_index: int = 0):
-    if not engine:
-        raise HTTPException(status_code=500, detail="NetCDF file not loaded in server.")
-    try:
-        return engine.slice_depth_plane(variable, depth, time_index)
-    except Exception as err:
-        raise HTTPException(status_code=400, detail=str(err))
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
