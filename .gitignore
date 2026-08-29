@@ -1,4 +1,4 @@
-#Large Scientific Datasets
+# Large Scientific Datasets
 data/
 *.nc
 *.csv
@@ -6,8 +6,8 @@ data/
 *.grib2
 *.bin
 
-#Python artifacts
-pycache/
+# Python artifacts
+__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -29,23 +29,22 @@ var/
 wheels/
 *.egg-info/
 .installed.cfg
-.egg
+*.egg
 
-#Node & Frontend dependencies
+# Node & Frontend dependencies
 node_modules/
 frontend/node_modules/
 frontend/dist/
 .vite/
 frontend/.vite/
-npm-debug.log
+npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-#IDE & OS temporary files
+# IDE & OS temporary files
 .vscode/
 .idea/
 *.swp
 *.swo
 .DS_Store
 Thumbs.db
-
