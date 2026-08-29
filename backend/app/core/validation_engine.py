@@ -34,15 +34,10 @@ class ValidationEngine:
         
         # Thermocline Depth (depth of max temperature gradient dT/dz)
         obs_d = np.array(obs_depths)[mask]
-        if len(obs_d) > 4:
-            unique_d, unique_indices = np.unique(obs_d, return_index=True)
-            if len(unique_d) > 3:
-                unique_o = o_clean[unique_indices]
-                dT_dz = np.gradient(unique_o, unique_d)
-                thermocline_idx = np.argmin(dT_dz)
-                obs_thermocline = float(unique_d[thermocline_idx])
-            else:
-                obs_thermocline = 120.0
+        if len(obs_d) > 3:
+            dT_dz = np.gradient(o_clean, obs_d)
+            thermocline_idx = np.argmin(dT_dz)
+            obs_thermocline = float(obs_d[thermocline_idx])
         else:
             obs_thermocline = 120.0
 
