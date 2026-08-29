@@ -2,9 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import * as THREE from 'three';
 import axios from 'axios';
 import { useStore } from '../state/store';
+import { getColorRamp } from '../utils/colormaps';
 
 export const OceanVolume: React.FC = () => {
-  const { activeVariable, selectedDepth, timeIndex, verticalExaggeration } = useStore();
+  const { activeVariable, selectedDepth, timeIndex, verticalExaggeration, colorPalette, layerOpacity } = useStore();
   const [sliceData, setSliceData] = useState<any>(null);
 
   useEffect(() => {
@@ -22,7 +23,7 @@ export const OceanVolume: React.FC = () => {
     const data = new Uint8Array(4 * size);
 
     const minV = sliceData.min_val ?? 10;
-    const maxV = sliceData.max_val ?? 30;
+    const maxV = sliceData.max_val ?? 32;
     const range = maxV - minV || 1;
 
     for (let r = 0; r < rows; r++) {
@@ -31,16 +32,17 @@ export const OceanVolume: React.FC = () => {
         const idx = (r * cols + c) * 4;
 
         if (val === null || val === undefined) {
-          data[idx] = 15;
-          data[idx + 1] = 23;
-          data[idx + 2] = 42;
+          data[idx] = 10;
+          data[idx + 1] = 18;
+          data[idx + 2] = 32;
           data[idx + 3] = 40;
         } else {
           const norm = Math.max(0, Math.min(1, (val - minV) / range));
-          data[idx] = Math.floor(norm * 255);
-          data[idx + 1] = Math.floor((1 - Math.abs(norm - 0.5) * 2) * 220);
-          data[idx + 2] = Math.floor((1 - norm) * 255);
-          data[idx + 3] = 230;
+          const [red, green, blue] = getColorRamp(norm, colorPalette);
+          data[idx] = red;
+          data[idx + 1] = green;
+          data[idx + 2] = blue;
+          data[idx + 3] = Math.floor(255 * layerOpacity);
         }
       }
     }
@@ -48,7 +50,7 @@ export const OceanVolume: React.FC = () => {
     const tex = new THREE.DataTexture(data, cols, rows, THREE.RGBAFormat);
     tex.needsUpdate = true;
     return tex;
-  }, [sliceData]);
+  }, [sliceData, colorPalette, layerOpacity]);
 
   const depthY = -(selectedDepth / 2000) * (verticalExaggeration / 3);
 
@@ -57,7 +59,13 @@ export const OceanVolume: React.FC = () => {
       {/* 3D Ocean Bounding Box Wireframe */}
       <mesh position={[0, -(verticalExaggeration / 6), 0]}>
         <boxGeometry args={[40, verticalExaggeration / 3, 30]} />
-        <meshBasicMaterial color="#00f5d4" wireframe opacity={0.15} transparent />
+        <meshBasicMaterial color='#00f5d4' wireframe opacity={0.2} transparent />
+      </mesh>
+
+      {/* Seafloor Bed Plane */}
+      <mesh position={[0, -(verticalExaggeration / 3), 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[40, 30]} />
+        <meshStandardMaterial color='#030712' roughness={0.9} />
       </mesh>
 
       {/* Dynamic Depth Slice Plane */}
@@ -67,7 +75,7 @@ export const OceanVolume: React.FC = () => {
           <meshStandardMaterial
             map={texture}
             transparent
-            opacity={0.88}
+            opacity={layerOpacity}
             side={THREE.DoubleSide}
           />
         </mesh>

@@ -18,3 +18,16 @@ class DepthSliceResponse(BaseModel):
     min_val: float
     max_val: float
     grid: List[List[Optional[float]]]
+
+class VectorPoint(BaseModel):
+    lat: float
+    lon: float
+    u: float
+    v: float
+    speed: float
+
+class CurrentVectorsResponse(BaseModel):
+    count: int
+    lats: List[float]
+    lons: List[float]
+    sample_vectors: List[VectorPoint]

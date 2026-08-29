@@ -16,5 +16,7 @@ class ValidationProfileResponse(BaseModel):
     coordinates: dict
     rmse: Optional[float]
     mean_bias: Optional[float]
+    r2_score: Optional[float] = None
+    thermocline_depth: Optional[float] = None
     observed: dict
     modeled: dict

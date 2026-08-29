@@ -18,7 +18,7 @@ def get_validation_profile(
     lat, lon = obs_data["lat"], obs_data["lon"]
     model_col = netcdf_service.get_column_profile(lat=lat, lon=lon, variable=variable)
     
-    rmse, bias = validation_engine.calculate_metrics(
+    rmse, bias, r2, thermocline_d = validation_engine.calculate_metrics(
         obs_depths=obs_data["depth"],
         obs_values=obs_data["temp"] if variable == "temp" else obs_data.get("psal", []),
         mod_depths=model_col["depth"],
@@ -30,6 +30,8 @@ def get_validation_profile(
         "coordinates": {"lat": lat, "lon": lon, "nearest_model_lat": model_col["nearest_lat"], "nearest_model_lon": model_col["nearest_lon"]},
         "rmse": rmse,
         "mean_bias": bias,
+        "r2_score": r2,
+        "thermocline_depth": thermocline_d,
         "observed": {
             "depth": obs_data["depth"],
             "temperature": obs_data["temp"],

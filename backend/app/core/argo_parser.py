@@ -10,7 +10,7 @@ class ArgoService:
             self.df["TEMP"] = pd.to_numeric(self.df["TEMP"], errors="coerce")
             if "PSAL" in self.df.columns:
                 self.df["PSAL"] = pd.to_numeric(self.df["PSAL"], errors="coerce")
-            print(f"[✓] Loaded Argo Observations: {len(self.df):,} rows")
+            print(f"[+] Loaded Argo Observations: {len(self.df):,} rows")
         except Exception as e:
             print(f"[!] Warning: Could not open {settings.ARGO_FLOATS_PATH}: {e}")
             self.df = pd.DataFrame()
