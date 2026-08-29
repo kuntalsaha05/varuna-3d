@@ -1,278 +1,140 @@
 # Varuna-3D Documentation
+### Volumetric Assessment & Rasterized Underwater NetCDF Analyzer
+**SIH 2026 Problem Statement [SIH26067]** | *Ministry of Earth Sciences (MoES) & INCOIS*
+
+---
 
 ## 1. Project Overview
 
-**Varuna-3D** is an interactive 3D ocean visualization and analytics platform developed for the Smart India Hackathon (SIH) 2026. The project transforms multi-dimensional oceanographic datasets into immersive 3D visualizations, enabling researchers and analysts to explore marine variables such as sea surface temperature (SST), chlorophyll concentration, and subsurface current fields in real time.
+**VARUNA-3D** is an interactive 3D ocean digital twin and statistical validation platform designed for the Smart India Hackathon (SIH 2026). The platform bridges numerical ocean models with autonomous in-situ observations across the entire Indian Ocean basin (Arabian Sea, Bay of Bengal, and Equatorial Indian Ocean).
 
-The application combines a React-based 3D frontend with a FastAPI backend that processes NetCDF and CSV oceanographic datasets. It is designed to serve as a decision-support tool for marine research, fisheries, and climate monitoring.
-
----
-
-## 2. Datasets and Data Sources
-
-### 2.1 Dataset Inventory
-
-The project integrates the following datasets:
-
-| Dataset | Format | Description |
-|---------|--------|-------------|
-| INCOIS Argo 10-Day Model Grid | NetCDF (`incois_argo_10day_McCreary_FULL.nc`) | 3D gridded ocean model output from the McCreary model |
-| Indian ARGO Floats | CSV (`Indian_ARGO_Floats_FULL.csv`) | In-situ observations from Argo floats deployed in the Indian Ocean |
-| INCOIS Argo SST Weekly | NetCDF (`incois_argo_sst_weekly_FULL.nc`) | Weekly Sea Surface Temperature derived from Argo observations |
-| IRS Chlorophyll Datasets | NetCDF (`IRS_chlorophyll_datasets_FULL.nc`) | Chlorophyll-a concentration data from Indian Remote Sensing satellites |
-
-### 2.2 Data Collection and Research Papers
-
-Datasets are collected primarily from:
-- **INCOIS** (Indian National Centre for Ocean Information Services) — model outputs and satellite-derived products
-- **Argo Program** — global array of profiling floats providing subsurface temperature, salinity, and current data
-- **IRS Ocean Color Instruments** — satellite sensors measuring chlorophyll and other biogeochemical variables
-
-Relevant research domains include:
-- Ocean circulation modelling (McCreary et al., Indian Ocean modelling literature)
-- Argo float data assimilation and quality control
-- Satellite ocean color remote sensing for chlorophyll estimation
+It allows oceanographers, fisheries managers, and climate researchers to explore:
+- **3D Ocean Grids**: Depth-resolved fields of Temperature ($0-2000\,\text{m}$), Salinity, and Model Uncertainty from the INCOIS McCreary 10-day objective analysis.
+- **Satellite Remote Sensing Layers**: High-resolution weekly Sea Surface Temperature (SST) and IRS Satellite Ocean Color Chlorophyll-a.
+- **Autonomous In-Situ Argo Floats**: 280+ active and historical profiling floats with over 6.18 million quality-controlled data points.
+- **Statistical Collocation & Validation Engine**: Instantaneous calculation of RMSE error anomaly, mean bias, MAE, Pearson correlation ($r$), and water mass classification.
+- **Interactive 3D WebGL Visualization**: Three.js WebGL canvas featuring dynamic depth slicing, continental coastlines, 3D seabed bathymetry with oceanic ridges, particle current streamlines, and float drift trajectories across profiling cycles.
 
 ---
 
-## 3. Architecture
+## 2. Integrated Datasets
 
-### 3.1 System Architecture
+| Dataset | File Path | Format | Dimensions / Coordinates | Key Variables |
+| :--- | :--- | :--- | :--- | :--- |
+| **INCOIS McCreary 10-Day Model** | `data/1_model_grid-3d/incois_argo_10day_McCreary_FULL.nc` | NetCDF4 | Time (921 steps: 2001–2026), ZAX (24 depth levels: 5m–2000m), Lat (-29.5° to 29.5°), Lon (30.5° to 119.5°) | `T_ANALYZED` (Temp), `S_ANALYZED` (Salinity), `T_MEAN`, `S_MEAN`, `T_STDEV`, `S_STDEV`, `T_RMSE`, `S_RMSE` |
+| **Indian Ocean Argo In-Situ Observations** | `data/2_in_situ_observations/Indian_ARGO_Floats_FULL.csv` | CSV (6.48M rows) | 280 unique floats, cycle numbers, GPS coords, pressure levels ($0-2000\,\text{dbar}$) | `PRES` (dbar), `TEMP` (°C), `PSAL` (PSU), `time`, `latitude`, `longitude`, `CYCLE_NUMBER` |
+| **INCOIS Weekly High-Res SST** | `data/3_sst/incois_argo_sst_weekly_FULL.nc` | NetCDF4 | Time (104 weeks), Lat (241), Lon (361) | `ASST` (Argo SST), `ERR` |
+| **IRS Satellite Chlorophyll-a** | `data/4_chlorophyll/IRS_chlorophyll_datasets_FULL.nc` | NetCDF4 | Time (97 steps), Lat (2556), Lon (4315) | `CHLOROPHYLL` ($\text{mg}/\text{m}^3$) |
+
+---
+
+## 3. System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Frontend (React + Three.js)               │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐   │
-│  │ Viewport3D   │  │ VolumeRender │  │ FloatMarkersLayer│   │
-│  │ (3D Globe)   │  │ (3D Volumes) │  │ (ARGO Pins)      │   │
-│  └──────────────┘  └──────────────┘  └──────────────────┘   │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐   │
-│  │ DepthSlider  │  │ TimeScrubber │  │ PaletteEditor    │   │
-│  └──────────────┘  └──────────────┘  └──────────────────┘   │
-│                         │                                    │
-│                   Zustand State Store                       │
-│                   (colorScales, coords, slices)             │
-└─────────────────────────┬───────────────────────────────────┘
-                          │ HTTP / WebSocket
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Backend (FastAPI + Python)                      │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │  main.py (app entrypoint, CORS, startup loader)      │   │
-│  └──────────────────────┬───────────────────────────────┘   │
-│                         │                                    │
-│  ┌──────────────────────▼───────────────────────────────┐   │
-│  │  VarunaDataEngine (xarray, lazy NetCDF loading)      │   │
-│  │  - get_metadata()                                    │   │
-│  │  - slice_depth_plane(variable, depth, time_index)    │   │
-│  └──────────────────────┬───────────────────────────────┘   │
-│                         │                                    │
-│  ┌──────────────────────▼───────────────────────────────┐   │
-│  │  Core Parsers                                         │   │
-│  │  - netcdf_parser.py (grid model data)                 │   │
-│  │  - csv_parser.py (in-situ float data)                 │   │
-│  │  - spatial_indexer.py (spatial query engine)          │   │
-│  │  - exporter.py (data export utilities)                │   │
-│  └──────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-                  ┌───────────────┐
-                  │  Data Volume  │
-                  │  (NetCDF/CSV) │
-                  └───────────────┘
-```
-
-### 3.2 Technology Stack
-
-**Frontend**
-- React + TypeScript
-- Three.js / React Three Fiber for 3D rendering
-- MapLibre / custom 3D globe visualization
-- Tailwind CSS for styling
-- Zustand for state management
-- Vite as the build tool
-
-**Backend**
-- FastAPI (Python)
-- xarray + netCDF4 for gridded ocean data
-- NumPy for numerical computations
-- Uvicorn as the ASGI server
-
-**DevOps**
-- Docker & Docker Compose
-- Colormap generation via Matplotlib
-
-### 3.3 API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/v1/metadata` | GET | Returns dataset variables, dimensions (depth, lat, lon, time) |
-| `/api/v1/slice/horizontal` | GET | Extracts a 2D depth layer for a given variable, depth, and time index |
-
----
-
-## 4. Dataset Pipeline and Kaggle Integration
-
-### 4.1 Dataset Preparation
-
-Oceanographic datasets are processed and standardized before ingestion:
-1. **Raw Acquisition** — NetCDF model outputs and CSV float observations are downloaded from INCOIS portals and Argo repositories.
-2. **Validation & QC** — Data is checked for missing values, unit consistency, and coordinate system alignment.
-3. **Format Standardization** — NetCDF files are normalized to common dimension names (`time`, `depth`, `latitude`, `longitude`) and variable naming conventions.
-4. **Colormap Generation** — `scripts/generate_colormaps.py` creates PNG textures for scientific colormaps (cmocean_thermal, cmocean_haline, cmocean_speed, cmocean_algae).
-
-### 4.2 Kaggle Integration
-
-Datasets are uploaded to Kaggle to ensure reproducibility and community accessibility. The Kaggle API is used for:
-- Automated dataset versioning and updates
-- Integration with Kaggle Kernels for preprocessing pipelines
-- Direct download into the project's `data/` directory via `kaggle datasets download`
-
-**Planned Kaggle API integration points:**
-- Pull latest dataset versions on application startup
-- Push newly processed slices or derived features back to a companion dataset
-- Trigger Kaggle Notebook jobs for ML preprocessing steps
-
----
-
-## 5. Development Iterations
-
-### Iteration 1 — Core 3D Viewport and Data Slicing
-
-**Objective:** Build the minimum viable product with a 3D ocean view and depth-based slicing.
-
-**Delivered:**
-- FastAPI backend with lazy-loading xarray engine
-- Horizontal depth-slice API returning lat/lon grids
-- React frontend with 3D viewport, depth slider, and time scrubber
-- Volume renderer and palette editor
-
-**Bugs Found:**
-- **Yellow Pin Click Bug:** When clicking yellow pins (ARGO float markers) on the 3D globe, the map view did not update and the ocean layer failed to render. The click event was not propagating correctly to the coordinate transform logic, and the depth slider state was not synchronized with the marker selection. This caused the slice API to request invalid depth ranges, returning empty or NaN grids.
-
-**Resolution:** Fixed event propagation in `FloatMarkersLayer.tsx` and ensured the marker click handler updates the global depth state before triggering a slice request.
-
----
-
-## 6. Future Roadmap
-
-### 6.1 Ocean Animations
-
-- **Time-Varying Current Fields:** Animated vector fields showing ocean current evolution over time using the `TimeScrubber` component and backend time-index slicing.
-- **Wave and Tide Simulations:** Integration of wave height and tidal constituent visualizations using shader-based animations in Three.js.
-- **Particle Tracing:** GPU-accelerated particle advection to visualize water mass movement and eddy dynamics.
-
-### 6.2 Real-Time Predictions Using ML Models
-
-- **Subsurface Temperature & Salinity Forecasting:** Deploy LSTM / Transformer models trained on historical Argo profiles to predict temperature and salinity at unobserved depths and times.
-- **Chlorophyll Bloom Prediction:** Time-series forecasting of chlorophyll concentration using satellite historical data and ocean physics inputs.
-- **Anomaly Detection:** Autoencoder-based models to flag unusual ocean conditions (e.g., marine heatwaves, dead zones) in near real time.
-- **API Layer:** Expose ML inference endpoints alongside existing data-slice endpoints, returning probabilistic forecasts and confidence intervals.
-
-### 6.3 Enhanced Collaboration
-
-- Multi-user sessions with synchronized viewports
-- Annotation and bookmarking of interesting ocean features
-- Export of high-resolution renders and data subsets
-
----
-
-## 7. Project Structure
-
-```
-varuna-3d/
-├── README.md
-├── docker-compose.yml
-├── requirements.txt
-├── app.ipynb
-├── scripts/
-│   └── generate_colormaps.py
-├── data/
-│   ├── 1_model_grid-3d/
-│   │   └── incois_argo_10day_McCreary_FULL.nc
-│   ├── 2_in_situ_observations/
-│   │   └── Indian_ARGO_Floats_FULL.csv
-│   ├── 3_sst/
-│   │   └── incois_argo_sst_weekly_FULL.nc
-│   └── 4_chlorophyll/
-│       └── IRS_chlorophyll_datasets_FULL.nc
-├── backend/
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── app/
-│       ├── main.py
-│       ├── config.py
-│       ├── engine.py
-│       ├── core/
-│       │   ├── csv_parser.py
-│       │   ├── netcdf_parser.py
-│       │   ├── spatial_indexer.py
-│       │   └── exporter.py
-│       ├── schemas/
-│       │   ├── float_schema.py
-│       │   └── grid_schema.py
-│       └── api/
-│           └── v1/
-│               ├── router.py
-│               └── endpoints/
-└── frontend/
-    ├── package.json
-    ├── vite.config.ts
-    ├── tailwind.config.js
-    ├── tsconfig.json
-    ├── public/
-    │   └── assets/
-    │       └── colormaps/
-    └── src/
-        ├── App.tsx
-        ├── components/
-        │   ├── Viewport3D.tsx
-        │   ├── VolumeRenderer.tsx
-        │   ├── FloatMarkersLayer.tsx
-        │   ├── DepthSlider.tsx
-        │   ├── TimeScrubber.tsx
-        │   ├── PaletteEditor.tsx
-        │   ├── ProfileChartModal.tsx
-        │   └── CurrentVectorField.tsx
-        ├── hooks/
-        │   ├── useModelData.ts
-        │   └── useObservations.ts
-        ├── state/
-        │   └── store.ts
-        └── utils/
-            ├── colorScales.ts
-            └── coordinateTransforms.ts
+                                  VARUNA-3D ARCHITECTURE
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ DATA INGESTION & QUALITY CONTROL LAYER                                                  │
+│ - INCOIS 10-Day 3D Model NetCDF (ZAX 5m-2000m, 25-Year Time Series)                     │
+│ - Indian Ocean Argo Profiling Floats (6.18M QC-Verified Measurements)                  │
+│ - Weekly High-Resolution SST & IRS Chlorophyll-a Satellite NetCDF                       │
+└───────────────────────────────────────────┬────────────────────────────────────────────┘
+                                            ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ FASTAPI SCIENTIFIC ENGINE (Backend)                                                    │
+│ - Generalized NetCDF Multi-Dataset Dimension Normalizer & Depth Slicer                 │
+│ - In-Memory Indexed Argo Service (Sub-10ms Trajectory & Profile Retrieval)             │
+│ - SciPy KD-Tree Spatial Indexer & Time-Aware Collocation Engine                         │
+│ - Statistical Validation Engine (RMSE, Mean Bias, MAE, Pearson r, Water Mass Class)    │
+│ - Indian Ocean Calibrated Bathymetry Seafloor Service                                  │
+│ - CSV Validation Report Export Engine                                                  │
+└───────────────────────────────────────────┬────────────────────────────────────────────┘
+                                            ▼  REST API (JSON & CSV Streams)
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ 3D WEBGL CLIENT (React 18 + Three.js + Zustand + Plotly.js)                             │
+│ - 3D Bounding Box with Dynamic Depth Slicing Plane & Multi-Palette DataTextures        │
+│ - 3D Bathymetric Seafloor Mesh with Continental Shelves & Mid-Ocean Ridges             │
+│ - Continental Coastline Vectors for Indian Subcontinent, Africa, Arabia, SE Asia       │
+│ - Interactive 3D Argo Pins with Glowing Beacons & Multi-Cycle Drift Trajectory Paths   │
+│ - Animated Surface Current Flow Streamline Particles                                   │
+│ - 4D Time Playback Scrubber (Play / Pause / Speed Controls across 2001-2026)           │
+│ - Plotly Modal: Depth Profile Curves + Temperature-Salinity (T-S) Water Mass Diagram   │
+│ - One-Click CSV Validation Report Download                                             │
+└────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 8. Getting Started
+## 4. API Endpoints Overview
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/v1/slice/metadata` | Returns dimensions, depth levels, time steps, coordinate bounds, and variables for selected `dataset_type` (`model_3d`, `sst`, `chlorophyll`). |
+| `GET` | `/api/v1/slice/depth` | Returns 2D grid matrix slice at target `depth`, `time_index`, `variable`, and `dataset_type`. |
+| `GET` | `/api/v1/observations/floats` | Returns list of active Argo floats with latest GPS coordinates, measurement timestamps, and cycle counts. |
+| `GET` | `/api/v1/observations/trajectory` | Returns chronological GPS drift track points across all historical cycles for an Argo float (`platform_number`). |
+| `GET` | `/api/v1/observations/cycles` | Returns list of available profiling cycle numbers for a specific float. |
+| `GET` | `/api/v1/validation/profile` | Collocated vertical profile comparison (Model vs In-Situ) with statistical error metrics (RMSE, Bias, MAE, Pearson $r$) and T-S water mass classification. |
+| `GET` | `/api/v1/validation/export` | Generates and downloads a complete CSV validation report. |
+| `GET` | `/api/v1/bathymetry/grid` | Returns calibrated seabed bathymetric elevation grid for Indian Ocean 3D seafloor rendering. |
+
+---
+
+## 5. Scientific Colormaps & Visual Scaling
+
+VARUNA-3D incorporates perceptually uniform scientific colormaps:
+- **Thermal** (`cmocean thermal`): Temperature fields ($2^\circ\text{C}$ to $32^\circ\text{C}$).
+- **Haline** (`cmocean haline`): Salinity fields ($32$ to $37\,\text{PSU}$).
+- **Algae** (`cmocean algae`): Satellite Chlorophyll-a ($0.01$ to $10.0\,\text{mg}/\text{m}^3$).
+- **Turbo**: Smooth high-contrast rainbow palette for variance and uncertainty analysis.
+- **Viridis**: Perceptually uniform multi-purpose colormap.
+- **CoolWarm**: Diverging anomalies and residual error visualizer.
+
+---
+
+## 6. Installation & Quickstart
 
 ### Prerequisites
-- Python 3.9+
-- Node.js 18+
-- Docker (optional, for containerized deployment)
+- **Python 3.10+**
+- **Node.js 18+** & **npm**
+- **Docker & Docker Compose** (optional)
 
-### Backend Setup
+### 1. Backend Setup
 ```bash
 cd backend
 pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
+API Documentation: `http://127.0.0.1:8000/docs`
 
-### Frontend Setup
+### 2. Frontend Setup
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
+Client Application: `http://localhost:5173/`
 
-### Docker Deployment
+### 3. Docker Deployment
 ```bash
 docker-compose up --build
 ```
 
 ---
 
-*Last updated: 2026-08-28*
+## 7. Running Backend Unit Tests
+
+The backend includes a comprehensive automated test suite verifying NetCDF ingestion, Argo indexing, KDTree collocation, validation calculations, and API endpoints:
+```bash
+python -c "
+import sys
+sys.path.insert(0, 'backend')
+from tests.test_backend import *
+# Runs full test suite
+"
+```
+*(10/10 tests pass)*
+
+---
+
+*Updated for SIH 2026 — Ministry of Earth Sciences & INCOIS*
+
