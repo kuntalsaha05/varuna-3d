@@ -15,7 +15,7 @@ export const BathymetryFloor: React.FC = () => {
   } | null>(null);
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/v1/bathymetry/grid?res_lat=50&res_lon=70')
+    axios.get('http://127.0.0.1:8000/api/v1/bathymetry/grid?res_lat=60&res_lon=80')
       .then(res => setBathyData(res.data))
       .catch(console.error);
   }, []);
@@ -40,30 +40,32 @@ export const BathymetryFloor: React.FC = () => {
       const colIdx = i % cols;
       const rowIdx = Math.floor(i / cols);
 
-      // Note: Row 0 in meshgrid corresponds to lat min (south), plane goes from top to bottom
       const elev = bathyData.elevation[rows - 1 - rowIdx]?.[colIdx] ?? -4000;
       
       // Compute Y height
       if (elev >= 0) {
-        pos.setY(i, 0.2); // Land slightly above sea level
+        pos.setY(i, 0.25); // Land slightly above sea level
         // Land color (dark slate-emerald)
-        colors.push(0.08, 0.18, 0.15);
+        colors.push(0.08, 0.22, 0.16);
       } else {
         // Ocean floor depth clamped to MAX_DEPTH for rendering
         const clampedElev = Math.max(-MAX_DEPTH, elev);
         pos.setY(i, clampedElev * depthScale);
 
-        // Depth-based bathymetric color
+        // Depth and Ridge Slope Color Splatting
         const depthNorm = Math.min(1.0, Math.abs(elev) / 4500.0);
-        if (depthNorm < 0.2) {
-          // Shallow shelf (teal/cyan)
-          colors.push(0.05, 0.35, 0.45);
-        } else if (depthNorm < 0.6) {
-          // Oceanic ridge / slope (deep ocean blue)
-          colors.push(0.03, 0.15, 0.35);
+        if (depthNorm < 0.15) {
+          // Shallow continental shelf (cyan / turquoise sand)
+          colors.push(0.06, 0.45, 0.55);
+        } else if (depthNorm < 0.45) {
+          // Mid-ocean ridge & seamounts (marine teal / blue)
+          colors.push(0.04, 0.22, 0.42);
+        } else if (depthNorm < 0.8) {
+          // Abyssal plain (deep oceanic indigo)
+          colors.push(0.02, 0.1, 0.25);
         } else {
-          // Abyssal deep (midnight navy)
-          colors.push(0.01, 0.05, 0.15);
+          // Deep ocean trench (midnight abyssal navy)
+          colors.push(0.01, 0.04, 0.14);
         }
       }
     }
@@ -80,8 +82,8 @@ export const BathymetryFloor: React.FC = () => {
       <mesh geometry={geometry}>
         <meshStandardMaterial
           vertexColors
-          roughness={0.8}
-          metalness={0.1}
+          roughness={0.75}
+          metalness={0.15}
           wireframe={false}
           side={THREE.DoubleSide}
         />
@@ -93,10 +95,11 @@ export const BathymetryFloor: React.FC = () => {
           color="#06b6d4"
           wireframe
           transparent
-          opacity={0.07}
+          opacity={0.08}
         />
       </mesh>
     </group>
   );
 };
+
 

@@ -37,3 +37,43 @@ export function threeDtoGeo(
   return [lat, lon];
 }
 
+export const GLOBE_RADIUS = 16.0;
+
+
+export function geoToSphere(
+  lat: number,
+  lon: number,
+  radius: number = GLOBE_RADIUS,
+  altitude: number = 0
+): [number, number, number] {
+  const r = radius + altitude;
+  const phi = ((90 - lat) * Math.PI) / 180;
+  const theta = ((lon + 180) * Math.PI) / 180;
+
+  const x = -r * Math.sin(phi) * Math.cos(theta);
+  const y = r * Math.cos(phi);
+  const z = r * Math.sin(phi) * Math.sin(theta);
+
+  return [x, y, z];
+}
+
+export function interpolateGreatCircle(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+  numPoints: number = 20,
+  radius: number = GLOBE_RADIUS,
+  altitude: number = 0.1
+): [number, number, number][] {
+  const pts: [number, number, number][] = [];
+  for (let i = 0; i <= numPoints; i++) {
+    const t = i / numPoints;
+    const lat = lat1 + (lat2 - lat1) * t;
+    const lon = lon1 + (lon2 - lon1) * t;
+    pts.push(geoToSphere(lat, lon, radius, altitude));
+  }
+  return pts;
+}
+
+

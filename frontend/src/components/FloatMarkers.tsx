@@ -86,36 +86,56 @@ export const FloatMarkers: React.FC = () => {
             }}
             onPointerOut={() => setHoveredId(null)}
           >
-            {/* Core Pin Mesh */}
-            <mesh
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedFloatId(f.PLATFORM_NUMBER);
-              }}
-            >
-              <sphereGeometry args={[isSelected ? 0.65 : isHovered ? 0.55 : 0.4, 16, 16]} />
-              <meshStandardMaterial
-                color={isSelected ? '#00f5d4' : '#ffb703'}
-                emissive={isSelected ? '#00b4d8' : '#fb8500'}
-                emissiveIntensity={isSelected ? 1.0 : 0.65}
-                roughness={0.2}
-              />
-            </mesh>
+            {/* 3D Physical Profiling Float Model */}
+            <group>
+              {/* Pressure Hull Cylinder */}
+              <mesh position={[0, -0.1, 0]}>
+                <cylinderGeometry args={[isSelected ? 0.22 : 0.16, isSelected ? 0.22 : 0.16, 0.7, 12]} />
+                <meshStandardMaterial
+                  color={isSelected ? '#00f5d4' : '#e2e8f0'}
+                  metalness={0.7}
+                  roughness={0.3}
+                />
+              </mesh>
+
+              {/* Yellow High-Visibility Flotation Collar */}
+              <mesh position={[0, 0.12, 0]}>
+                <cylinderGeometry args={[isSelected ? 0.28 : 0.22, isSelected ? 0.28 : 0.22, 0.18, 12]} />
+                <meshStandardMaterial color="#f59e0b" roughness={0.4} />
+              </mesh>
+
+              {/* Antenna Mast & Sensor Head */}
+              <mesh
+                position={[0, 0.45, 0]}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedFloatId(f.PLATFORM_NUMBER);
+                }}
+              >
+                <sphereGeometry args={[isSelected ? 0.25 : 0.18, 16, 16]} />
+                <meshStandardMaterial
+                  color={isSelected ? '#00f5d4' : '#ffb703'}
+                  emissive={isSelected ? '#00b4d8' : '#fb8500'}
+                  emissiveIntensity={isSelected ? 1.4 : 0.8}
+                  roughness={0.2}
+                />
+              </mesh>
+            </group>
 
             {/* Glowing Beacon Halo Ring */}
-            <mesh rotation={[-Math.PI / 2, 0, 0]}>
-              <ringGeometry args={[0.5, isSelected ? 0.9 : 0.7, 16]} />
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]}>
+              <ringGeometry args={[0.3, isSelected ? 0.9 : 0.65, 16]} />
               <meshBasicMaterial
                 color={isSelected ? '#00f5d4' : '#ffb703'}
                 transparent
-                opacity={isSelected ? 0.8 : 0.4}
+                opacity={isSelected ? 0.85 : 0.45}
                 side={THREE.DoubleSide}
               />
             </mesh>
 
             {/* Hover Tooltip Card */}
             {(isHovered || isSelected) && (
-              <Html distanceFactor={45} position={[0, 0.8, 0]} center>
+              <Html distanceFactor={45} position={[0, 1.2, 0]} center>
                 <div className="bg-slate-900/95 border border-cyan-500/40 text-slate-100 text-[11px] p-2.5 rounded-lg shadow-xl pointer-events-none whitespace-nowrap min-w-[140px]">
                   <div className="font-bold text-cyan-400 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -141,4 +161,5 @@ export const FloatMarkers: React.FC = () => {
     </group>
   );
 };
+
 

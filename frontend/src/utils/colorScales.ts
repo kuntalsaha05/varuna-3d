@@ -1,4 +1,6 @@
+import * as THREE from 'three';
 import { PaletteType } from '../state/store';
+
 
 type ColorStop = [number, [number, number, number]];
 
@@ -81,3 +83,49 @@ export function getPaletteGradientCSS(palette: PaletteType): string {
   const parts = stops.map(([t, [r, g, b]]) => `rgb(${r}, ${g}, ${b}) ${Math.round(t * 100)}%`);
   return `linear-gradient(to right, ${parts.join(', ')})`;
 }
+
+export function generatePaletteTexture(
+  grid: (number | null)[][],
+  palette: PaletteType,
+  minVal: number = 10,
+  maxVal: number = 30
+): any {
+  if (!grid || grid.length === 0) return null;
+
+  const rows = grid.length;
+  const cols = grid[0].length;
+  const size = rows * cols;
+  const data = new Uint8Array(4 * size);
+
+  const range = maxVal - minVal || 1;
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const val = grid[rows - 1 - r][c];
+      const idx = (r * cols + c) * 4;
+
+      if (val === null || val === undefined) {
+        data[idx] = 10;
+        data[idx + 1] = 18;
+        data[idx + 2] = 30;
+        data[idx + 3] = 0; // Fully transparent for masked/land points on globe
+      } else {
+        const norm = Math.max(0, Math.min(1, (val - minVal) / range));
+        const [red, green, blue] = interpolateColor(palette, norm);
+        data[idx] = red;
+        data[idx + 1] = green;
+        data[idx + 2] = blue;
+        data[idx + 3] = 230;
+      }
+    }
+  }
+
+  const tex = new THREE.DataTexture(data, cols, rows, THREE.RGBAFormat);
+  tex.generateMipmaps = false;
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+

@@ -1,10 +1,14 @@
 import React, { useEffect } from 'react';
 import axios from 'axios';
-import { useStore, DatasetType } from '../state/store';
-import { Layers, Sliders, Eye, Waves, Database, Compass, Mountain, MapPin, Activity } from 'lucide-react';
+import { useStore, DatasetType, ViewMode } from '../state/store';
+import { Layers, Sliders, Eye, Waves, Database, Compass, Mountain, MapPin, Activity, Globe, Box, RotateCw } from 'lucide-react';
 
 export const ControlPanel: React.FC = () => {
   const {
+    viewMode,
+    setViewMode,
+    globeAutoRotate,
+    toggleGlobeAutoRotate,
     activeDataset,
     setActiveDataset,
     activeVariable,
@@ -21,8 +25,6 @@ export const ControlPanel: React.FC = () => {
     toggleTrajectories,
     showCurrents,
     toggleCurrents,
-    showIsoSurfaces,
-    toggleIsoSurfaces,
     setMetadata
   } = useStore();
 
@@ -49,17 +51,50 @@ export const ControlPanel: React.FC = () => {
   };
 
   return (
-    <div className="absolute top-4 left-4 z-10 w-84 max-w-[340px] bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-2xl p-5 shadow-2xl text-slate-100 space-y-4 select-none">
+    <div className="absolute top-4 left-4 z-10 w-84 max-w-[340px] bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-2xl p-5 shadow-2xl text-slate-100 space-y-4 select-none max-h-[92vh] overflow-y-auto">
       {/* Title & Brand */}
-      <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
-        <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30">
-          <Waves className="text-cyan-400 w-5 h-5 animate-pulse" />
+      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30">
+            <Waves className="text-cyan-400 w-5 h-5 animate-pulse" />
+          </div>
+          <div>
+            <h1 className="font-bold text-base leading-tight bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500 bg-clip-text text-transparent">
+              VARUNA-3D
+            </h1>
+            <p className="text-[11px] text-slate-400 font-medium">INCOIS Ocean Digital Twin</p>
+          </div>
         </div>
-        <div>
-          <h1 className="font-bold text-base leading-tight bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500 bg-clip-text text-transparent">
-            VARUNA-3D
-          </h1>
-          <p className="text-[11px] text-slate-400 font-medium">INCOIS Indian Ocean Digital Twin</p>
+      </div>
+
+      {/* 3D View Mode Switcher (Global Earth vs Regional Basin Box) */}
+      <div className="space-y-1.5">
+        <label className="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
+          <Globe size={13} className="text-cyan-400" /> VIEW MODE
+        </label>
+        <div className="grid grid-cols-2 gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+          <button
+            onClick={() => setViewMode('globe')}
+            className={`py-2 px-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition ${
+              viewMode === 'globe'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 shadow-md shadow-cyan-500/30 font-extrabold'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Globe size={14} />
+            <span>3D Earth Globe</span>
+          </button>
+          <button
+            onClick={() => setViewMode('basin')}
+            className={`py-2 px-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition ${
+              viewMode === 'basin'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 shadow-md shadow-cyan-500/30 font-extrabold'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Box size={14} />
+            <span>Regional Basin</span>
+          </button>
         </div>
       </div>
 
@@ -179,63 +214,84 @@ export const ControlPanel: React.FC = () => {
         </div>
       )}
 
-      {/* Vertical Exaggeration Slider */}
-      <div className="space-y-1.5 pt-1">
-        <div className="flex justify-between items-center text-xs">
-          <span className="font-semibold text-slate-400 flex items-center gap-1.5">
-            <Eye size={13} className="text-cyan-400" /> VERTICAL SCALE
-          </span>
-          <span className="font-mono text-cyan-400 font-bold">{verticalExaggeration}x</span>
+      {/* Globe Mode Specific Controls */}
+      {viewMode === 'globe' ? (
+        <div className="space-y-1.5 pt-2 border-t border-slate-800">
+          <span className="text-[11px] font-semibold text-slate-400 block">GLOBE CONTROLS</span>
+          <button
+            onClick={toggleGlobeAutoRotate}
+            className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-semibold transition ${
+              globeAutoRotate
+                ? 'bg-cyan-500/20 border border-cyan-500/50 text-cyan-300'
+                : 'bg-slate-800/80 hover:bg-slate-700 text-slate-400'
+            }`}
+          >
+            <RotateCw size={13} className={globeAutoRotate ? 'animate-spin' : ''} />
+            <span>{globeAutoRotate ? 'Planetary Rotation: Active' : 'Enable Planetary Rotation'}</span>
+          </button>
         </div>
-        <input
-          type="range"
-          min="5"
-          max="80"
-          step="1"
-          value={verticalExaggeration}
-          onChange={(e) => setVerticalExaggeration(Number(e.target.value))}
-          className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-        />
-      </div>
+      ) : (
+        /* Basin Box Specific Controls */
+        <>
+          {/* Vertical Exaggeration Slider */}
+          <div className="space-y-1.5 pt-1">
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-semibold text-slate-400 flex items-center gap-1.5">
+                <Eye size={13} className="text-cyan-400" /> VERTICAL SCALE
+              </span>
+              <span className="font-mono text-cyan-400 font-bold">{verticalExaggeration}x</span>
+            </div>
+            <input
+              type="range"
+              min="5"
+              max="80"
+              step="1"
+              value={verticalExaggeration}
+              onChange={(e) => setVerticalExaggeration(Number(e.target.value))}
+              className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+            />
+          </div>
 
-      {/* 3D Scene Layer Toggles */}
-      <div className="space-y-1.5 pt-2 border-t border-slate-800">
-        <span className="text-[11px] font-semibold text-slate-400 block">3D LAYERS</span>
-        <div className="grid grid-cols-2 gap-1.5">
-          <button
-            onClick={toggleBathymetry}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition ${
-              showBathymetry ? 'bg-cyan-950/80 border border-cyan-500/40 text-cyan-300' : 'bg-slate-800/60 text-slate-500'
-            }`}
-          >
-            <Mountain size={12} /> Seafloor Bathymetry
-          </button>
-          <button
-            onClick={toggleCoastlines}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition ${
-              showCoastlines ? 'bg-cyan-950/80 border border-cyan-500/40 text-cyan-300' : 'bg-slate-800/60 text-slate-500'
-            }`}
-          >
-            <Compass size={12} /> Coastlines
-          </button>
-          <button
-            onClick={toggleTrajectories}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition ${
-              showTrajectories ? 'bg-cyan-950/80 border border-cyan-500/40 text-cyan-300' : 'bg-slate-800/60 text-slate-500'
-            }`}
-          >
-            <MapPin size={12} /> Argo Drift Paths
-          </button>
-          <button
-            onClick={toggleCurrents}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition ${
-              showCurrents ? 'bg-cyan-950/80 border border-cyan-500/40 text-cyan-300' : 'bg-slate-800/60 text-slate-500'
-            }`}
-          >
-            <Waves size={12} /> Current Flow
-          </button>
-        </div>
-      </div>
+          {/* 3D Scene Layer Toggles */}
+          <div className="space-y-1.5 pt-2 border-t border-slate-800">
+            <span className="text-[11px] font-semibold text-slate-400 block">3D LAYERS</span>
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                onClick={toggleBathymetry}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition ${
+                  showBathymetry ? 'bg-cyan-950/80 border border-cyan-500/40 text-cyan-300' : 'bg-slate-800/60 text-slate-500'
+                }`}
+              >
+                <Mountain size={12} /> Seafloor Bathymetry
+              </button>
+              <button
+                onClick={toggleCoastlines}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition ${
+                  showCoastlines ? 'bg-cyan-950/80 border border-cyan-500/40 text-cyan-300' : 'bg-slate-800/60 text-slate-500'
+                }`}
+              >
+                <Compass size={12} /> Coastlines
+              </button>
+              <button
+                onClick={toggleTrajectories}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition ${
+                  showTrajectories ? 'bg-cyan-950/80 border border-cyan-500/40 text-cyan-300' : 'bg-slate-800/60 text-slate-500'
+                }`}
+              >
+                <MapPin size={12} /> Argo Drift Paths
+              </button>
+              <button
+                onClick={toggleCurrents}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition ${
+                  showCurrents ? 'bg-cyan-950/80 border border-cyan-500/40 text-cyan-300' : 'bg-slate-800/60 text-slate-500'
+                }`}
+              >
+                <Waves size={12} /> Current Flow
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Legend & Instructions */}
       <div className="pt-2 border-t border-slate-800 text-[10px] text-slate-400 space-y-1">
@@ -251,4 +307,5 @@ export const ControlPanel: React.FC = () => {
     </div>
   );
 };
+
 

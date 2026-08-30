@@ -2,8 +2,13 @@ import { create } from 'zustand';
 
 export type DatasetType = 'model_3d' | 'sst' | 'chlorophyll';
 export type PaletteType = 'turbo' | 'viridis' | 'thermal' | 'haline' | 'algae' | 'coolwarm';
+export type ViewMode = 'globe' | 'basin';
 
 interface AppState {
+  // View Mode (3D Globe vs 3D Regional Basin)
+  viewMode: ViewMode;
+  globeAutoRotate: boolean;
+
   // Dataset & variables
   activeDataset: DatasetType;
   activeVariable: string;
@@ -41,6 +46,8 @@ interface AppState {
   selectedFloatCycle: number | null;
 
   // Actions
+  setViewMode: (mode: ViewMode) => void;
+  toggleGlobeAutoRotate: () => void;
   setActiveDataset: (d: DatasetType) => void;
   setActiveVariable: (v: string) => void;
   setSelectedDepth: (d: number) => void;
@@ -69,6 +76,9 @@ interface AppState {
 }
 
 export const useStore = create<AppState>((set) => ({
+  viewMode: 'globe',
+  globeAutoRotate: false,
+
   activeDataset: 'model_3d',
   activeVariable: 'temp',
   selectedDepth: 0.0,
@@ -99,6 +109,8 @@ export const useStore = create<AppState>((set) => ({
   selectedFloatId: null,
   selectedFloatCycle: null,
 
+  setViewMode: (mode) => set({ viewMode: mode }),
+  toggleGlobeAutoRotate: () => set((state) => ({ globeAutoRotate: !state.globeAutoRotate })),
   setActiveDataset: (d) => set({ activeDataset: d }),
   setActiveVariable: (v) => {
     let defaultPalette: PaletteType = 'thermal';
@@ -139,4 +151,5 @@ export const useStore = create<AppState>((set) => ({
   setSelectedFloatId: (id) => set({ selectedFloatId: id, selectedFloatCycle: null }),
   setSelectedFloatCycle: (c) => set({ selectedFloatCycle: c }),
 }));
+
 
