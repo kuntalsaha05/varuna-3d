@@ -54,21 +54,30 @@ class NetCDFService:
             return None, None
         return self.ds_3d, "T_ANALYZED" if self.ds_3d and "T_ANALYZED" in self.ds_3d else None
 
-    def get_metadata(self):
+    def get_metadata(self, variable: str = "temp"):
+        target_ds, var_name = self._resolve_var(variable)
+        if target_ds is None:
+            target_ds = self.ds_3d
+
         depths = [5.0, 10.0, 20.0, 30.0, 50.0, 75.0, 100.0, 150.0, 200.0, 300.0, 500.0, 1000.0, 2000.0]
         time_steps = ["2024-01-01T00:00:00"]
         lat_range = [5.0, 25.0]
         lon_range = [65.0, 90.0]
 
-        if self.ds_3d is not None:
-            if self.depth_coord in self.ds_3d:
-                depths = [float(d) for d in self.ds_3d[self.depth_coord].values]
-            if "time" in self.ds_3d:
-                time_steps = [str(t)[:19] for t in self.ds_3d.time.values[:100]]
-            if "latitude" in self.ds_3d:
-                lat_range = [float(self.ds_3d.latitude.min()), float(self.ds_3d.latitude.max())]
-            if "longitude" in self.ds_3d:
-                lon_range = [float(self.ds_3d.longitude.min()), float(self.ds_3d.longitude.max())]
+        if target_ds is not None:
+            if self.depth_coord in target_ds:
+                depths = [float(d) for d in target_ds[self.depth_coord].values]
+            elif "depth" in target_ds:
+                depths = [float(d) for d in target_ds["depth"].values]
+            else:
+                depths = [0.0]
+
+            if "time" in target_ds:
+                time_steps = [str(t)[:19] for t in target_ds.time.values]
+            if "latitude" in target_ds:
+                lat_range = [float(target_ds.latitude.min()), float(target_ds.latitude.max())]
+            if "longitude" in target_ds:
+                lon_range = [float(target_ds.longitude.min()), float(target_ds.longitude.max())]
 
         return {
             "time_steps": time_steps,
@@ -76,7 +85,7 @@ class NetCDFService:
             "lat_range": lat_range,
             "lon_range": lon_range,
             "variables": ["temp", "sal", "sst", "chlorophyll"],
-            "default_variable": "temp"
+            "default_variable": variable
         }
 
     def get_depth_slice(self, variable: str = "temp", depth: float = 0.0, time_index: int = -1):

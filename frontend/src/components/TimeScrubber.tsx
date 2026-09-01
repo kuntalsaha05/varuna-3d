@@ -13,8 +13,8 @@ export const TimeScrubber: React.FC = () => {
     timeSteps
   } = useStore();
 
-  const totalSteps = timeSteps.length || 92;
-  const currentStep = timeIndex < 0 ? totalSteps - 1 : timeIndex;
+  const totalSteps = Math.max(1, timeSteps.length);
+  const currentStep = timeIndex < 0 ? totalSteps - 1 : Math.min(timeIndex, totalSteps - 1);
 
   // 4D Temporal Animation Timer
   useEffect(() => {

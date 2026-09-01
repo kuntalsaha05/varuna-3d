@@ -15,9 +15,9 @@ export const DataHeader: React.FC = () => {
   } = useStore();
 
   const meta = getVariableMeta(activeVariable);
-  const totalSteps = timeSteps.length || 92;
-  const currentStep = timeIndex < 0 ? totalSteps - 1 : timeIndex;
-  const activeDate = timeSteps[currentStep] || '2024-01-10 10-Day Analysis';
+  const totalSteps = Math.max(1, timeSteps.length);
+  const currentStep = timeIndex < 0 ? totalSteps - 1 : Math.min(timeIndex, totalSteps - 1);
+  const activeDate = timeSteps[currentStep] || 'Live 3D Forecast';
 
 
   return (

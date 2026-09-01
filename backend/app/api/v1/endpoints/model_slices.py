@@ -5,8 +5,8 @@ from app.schemas.grid_schema import GridMetadataResponse, DepthSliceResponse, Cu
 router = APIRouter()
 
 @router.get("/metadata", response_model=GridMetadataResponse)
-def get_metadata():
-    return netcdf_service.get_metadata()
+def get_metadata(variable: str = Query("temp", description="Target variable key: temp, sal, sst, chlorophyll")):
+    return netcdf_service.get_metadata(variable=variable)
 
 @router.get("/depth", response_model=DepthSliceResponse)
 def get_depth_slice(

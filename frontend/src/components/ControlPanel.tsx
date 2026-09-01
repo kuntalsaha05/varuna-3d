@@ -50,17 +50,22 @@ export const ControlPanel: React.FC = () => {
     sarResult,
     activePresetRegion,
     setActivePresetRegion,
-    setCameraTarget,
+    setTimeIndex,
     setMetadata
   } = useStore();
 
   const [showLayerMenu, setShowLayerMenu] = useState(true);
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/v1/slice/metadata')
-      .then(res => setMetadata(res.data.depth_levels, res.data.time_steps, res.data.variables))
+    axios.get('http://127.0.0.1:8000/api/v1/slice/metadata', {
+      params: { variable: activeVariable }
+    })
+      .then(res => {
+        setMetadata(res.data.depth_levels, res.data.time_steps, res.data.variables);
+        setTimeIndex(-1);
+      })
       .catch(console.error);
-  }, []);
+  }, [activeVariable]);
 
   const variablesList: { key: OceanVariable; label: string; unit: string }[] = [
     { key: 'temp', label: 'Sub-surface Temperature', unit: '°C' },
