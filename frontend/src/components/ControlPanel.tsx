@@ -39,6 +39,15 @@ export const ControlPanel: React.FC = () => {
     setShowAtmosphere,
     particleDensity,
     setParticleDensity,
+    showGlider,
+    setShowGlider,
+    isSarMode,
+    setIsSarMode,
+    sarObjectType,
+    setSarObjectType,
+    sarPoint,
+    setSarPoint,
+    sarResult,
     activePresetRegion,
     setActivePresetRegion,
     setCameraTarget,
@@ -264,6 +273,52 @@ export const ControlPanel: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Glider Sawtooth Missions Toggle */}
+            <div className="space-y-1.5 pt-2 border-t border-slate-800/60">
+              <label className="flex items-center justify-between cursor-pointer">
+                <span className="flex items-center gap-2 text-slate-300 font-medium">
+                  <Compass size={13} className="text-emerald-400" /> Underwater Gliders (3D Sawtooth)
+                </span>
+                <input
+                  type="checkbox"
+                  checked={showGlider}
+                  onChange={(e) => setShowGlider(e.target.checked)}
+                  className="rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-0"
+                />
+              </label>
+            </div>
+
+            {/* Search & Rescue (SAR) Drift Controls */}
+            {isSarMode && (
+              <div className="p-2.5 rounded-xl bg-slate-950/80 border border-amber-500/60 space-y-2">
+                <div className="flex items-center justify-between text-[11px] font-bold text-amber-300 uppercase">
+                  <span>🚨 SAR 72h Drift Simulation</span>
+                  <button onClick={() => setIsSarMode(false)} className="text-slate-400 hover:text-white">✕</button>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] text-slate-400">Drift Object Type</label>
+                  <select
+                    value={sarObjectType}
+                    onChange={(e) => setSarObjectType(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-1 text-[11px] text-slate-200"
+                  >
+                    <option value="life_raft">Life Raft (With Canopy)</option>
+                    <option value="vessel_capsized">Capsized Fishing Boat</option>
+                    <option value="oil_slick">Maritime Oil Slick</option>
+                    <option value="person_in_water">Person in Water (PIW)</option>
+                  </select>
+                </div>
+
+                {sarResult && (
+                  <div className="text-[10px] font-mono text-slate-300 space-y-0.5 pt-1 border-t border-slate-800">
+                    <div>72h Datum: {sarResult.search_datum_72h.latitude}°N, {sarResult.search_datum_72h.longitude}°E</div>
+                    <div className="text-amber-400 font-bold">Search Radius: {sarResult.search_datum_72h.search_radius_nm} NM ({sarResult.search_datum_72h.search_radius_km} km)</div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Atmosphere & Clouds (Globe Mode) */}
             {viewMode === 'globe' && (

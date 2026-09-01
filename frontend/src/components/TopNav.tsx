@@ -1,6 +1,15 @@
 import React from 'react';
 import { useStore } from '../state/store';
-import { Globe, Box, Compass, RotateCcw, HelpCircle, Activity, Radio } from 'lucide-react';
+import {
+  Globe,
+  Box,
+  Compass,
+  RotateCcw,
+  HelpCircle,
+  ShieldAlert,
+  GraduationCap,
+  LifeBuoy
+} from 'lucide-react';
 
 export const TopNav: React.FC = () => {
   const {
@@ -9,7 +18,14 @@ export const TopNav: React.FC = () => {
     hoveredCoords,
     resetCamera,
     showHelpModal,
-    setShowHelpModal
+    setShowHelpModal,
+    showWarningModal,
+    setShowWarningModal,
+    showStoryTour,
+    setShowStoryTour,
+    isSarMode,
+    setIsSarMode,
+    setSarPoint
   } = useStore();
 
   return (
@@ -29,7 +45,7 @@ export const TopNav: React.FC = () => {
             </span>
           </div>
           <p className="text-[10px] text-slate-400 font-medium">
-            Operational Oceanographic 3D Digital Twin & Validation Workstation
+            Operational Oceanographic 3D Digital Twin & Disaster Warning System
           </p>
         </div>
       </div>
@@ -45,7 +61,7 @@ export const TopNav: React.FC = () => {
           }`}
         >
           <Globe size={14} />
-          <span>3D Earth Globe</span>
+          <span>3D Globe</span>
         </button>
 
         <button
@@ -57,14 +73,59 @@ export const TopNav: React.FC = () => {
           }`}
         >
           <Box size={14} />
-          <span>Volumetric Transect</span>
+          <span>Volumetric Box</span>
         </button>
       </div>
 
-      {/* Action Controls & Telemetry Status */}
-      <div className="flex items-center gap-3 text-xs text-slate-300">
+      {/* Action Controls & Operational Modules */}
+      <div className="flex items-center gap-2 text-xs text-slate-300">
+        
+        {/* 1. Science Tour / Outreach Button */}
+        <button
+          onClick={() => setShowStoryTour(!showStoryTour)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
+            showStoryTour
+              ? 'bg-cyan-500 text-slate-950 font-bold border-cyan-400 shadow-md shadow-cyan-500/30'
+              : 'bg-slate-900 border-slate-800 text-cyan-300 hover:bg-slate-800'
+          }`}
+          title="Public Outreach & Science Communication Tour"
+        >
+          <GraduationCap size={15} />
+          <span className="hidden sm:inline">Science Tour</span>
+        </button>
+
+        {/* 2. Search & Rescue (SAR) Drift Tool Toggle */}
+        <button
+          onClick={() => {
+            const nextMode = !isSarMode;
+            setIsSarMode(nextMode);
+            if (nextMode && !useStore.getState().sarPoint) {
+              setSarPoint({ lat: 17.5, lon: 86.0 });
+            }
+          }}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
+            isSarMode
+              ? 'bg-amber-500 text-slate-950 font-bold border-amber-400 shadow-md shadow-amber-500/30'
+              : 'bg-slate-900 border-slate-800 text-amber-300 hover:bg-slate-800'
+          }`}
+          title="72-Hour Search & Rescue Drift Simulator"
+        >
+          <LifeBuoy size={14} />
+          <span className="hidden sm:inline">SAR Drift</span>
+        </button>
+
+        {/* 3. Coastal Disaster Situation Room Trigger */}
+        <button
+          onClick={() => setShowWarningModal(!showWarningModal)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-950/80 hover:bg-rose-900/80 border border-rose-600/60 text-rose-300 text-xs font-semibold transition shadow-md shadow-rose-950/40"
+          title="INCOIS Coastal Disaster Warnings & Situation Room"
+        >
+          <ShieldAlert size={14} className="text-rose-400 animate-pulse" />
+          <span className="hidden md:inline">Coastal Alerts</span>
+        </button>
+
         {/* Cursor Coordinates Readout */}
-        <div className="hidden sm:flex items-center gap-2 bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-800">
+        <div className="hidden lg:flex items-center gap-1.5 bg-slate-900/80 px-2.5 py-1.5 rounded-xl border border-slate-800">
           <Compass size={13} className="text-cyan-400" />
           <span className="font-mono text-[11px] text-slate-300">
             {hoveredCoords
@@ -73,16 +134,10 @@ export const TopNav: React.FC = () => {
           </span>
         </div>
 
-        {/* Backend / Data Health Badge */}
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-700/40 text-emerald-400 font-medium text-[11px]">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400/50"></span>
-          <span className="hidden md:inline">INCOIS API Active</span>
-        </div>
-
         {/* Reset Camera Button */}
         <button
           onClick={resetCamera}
-          className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition"
+          className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition"
           title="Reset Camera View"
         >
           <RotateCcw size={14} />
@@ -91,7 +146,7 @@ export const TopNav: React.FC = () => {
         {/* Help / Guide Modal Button */}
         <button
           onClick={() => setShowHelpModal(!showHelpModal)}
-          className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition"
+          className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition"
           title="Workstation Quick Guide"
         >
           <HelpCircle size={14} />

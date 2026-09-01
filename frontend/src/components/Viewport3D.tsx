@@ -7,6 +7,8 @@ import { EarthGlobe } from './EarthGlobe';
 import { OceanVolume } from './OceanVolume';
 import { FloatMarkers } from './FloatMarkers';
 import { CurrentVectorField } from './CurrentVectorField';
+import { SarDriftLayer } from './SarDriftLayer';
+import { GliderSawtooth } from './GliderSawtooth';
 
 const CameraHandler: React.FC = () => {
   const { viewMode, cameraTarget } = useStore();
@@ -14,18 +16,25 @@ const CameraHandler: React.FC = () => {
   const controlsRef = useRef<any>(null);
 
   useEffect(() => {
+    if (cameraTarget) {
+      camera.position.set(cameraTarget[0], cameraTarget[1], cameraTarget[2]);
+      if (controlsRef.current) {
+        controlsRef.current.target.set(0, viewMode === 'globe' ? 0 : -5, 0);
+        controlsRef.current.update();
+      }
+      return;
+    }
+
     if (viewMode === 'globe') {
-      // Focus on the Indian Ocean (Lat 15 N, Lon 75 E)
       camera.position.set(22, 18, 38);
       camera.lookAt(0, 0, 0);
     } else {
-      // Regional Box View
       camera.position.set(28, 22, 38);
       camera.lookAt(0, -5, 0);
     }
-  }, [viewMode, camera]);
+  }, [viewMode, camera, cameraTarget]);
 
-  return <OrbitControls ref={controlsRef} makeDefault minDistance={18} maxDistance={90} enableDamping dampingFactor={0.05} />;
+  return <OrbitControls ref={controlsRef} makeDefault minDistance={14} maxDistance={90} enableDamping dampingFactor={0.05} />;
 };
 
 export const Viewport3D: React.FC = () => {
@@ -44,6 +53,8 @@ export const Viewport3D: React.FC = () => {
           {viewMode === 'globe' ? <EarthGlobe /> : <OceanVolume />}
           <FloatMarkers />
           <CurrentVectorField />
+          <GliderSawtooth />
+          <SarDriftLayer />
         </Suspense>
 
         <CameraHandler />

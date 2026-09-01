@@ -2,11 +2,14 @@ import React from 'react';
 import { Viewport3D } from './components/Viewport3D';
 import { TopNav } from './components/TopNav';
 import { DataHeader } from './components/DataHeader';
+import { DisasterAlertBar } from './components/DisasterAlertBar';
 import { ControlPanel } from './components/ControlPanel';
 import { InspectorPanel } from './components/InspectorPanel';
 import { TimeScrubber } from './components/TimeScrubber';
 import { ScientificLegend } from './components/ScientificLegend';
 import { ValidationModal } from './components/ValidationModal';
+import { DisasterModal } from './components/DisasterModal';
+import { StoryTourModal } from './components/StoryTourModal';
 import { HelpModal } from './components/HelpModal';
 
 export default function App() {
@@ -18,25 +21,34 @@ export default function App() {
       {/* 2. Permanent Scientific Data Header Strip */}
       <DataHeader />
 
-      {/* 3. Central 3D Ocean Visualizer */}
+      {/* 3. Live INCOIS Coastal Disaster Alert Ticker */}
+      <DisasterAlertBar />
+
+      {/* 4. Central 3D Ocean Visualizer */}
       <Viewport3D />
 
-      {/* 4. Left Sidebar Workstation Controls (Accordion) */}
+      {/* 5. Left Sidebar Workstation Controls */}
       <ControlPanel />
 
-      {/* 5. Right-Side Contextual Float Inspector */}
+      {/* 6. Right-Side Contextual Float Inspector */}
       <InspectorPanel />
 
-      {/* 6. Bottom 4D Temporal Timeline Bar */}
+      {/* 7. Bottom 4D Temporal Timeline Bar */}
       <TimeScrubber />
 
-      {/* 7. Bottom-Right Scientific Colormap Legend */}
+      {/* 8. Bottom-Right Scientific Colormap Legend */}
       <ScientificLegend />
 
-      {/* 8. Full Expanded Validation Modal */}
+      {/* 9. In-Situ Float Expanded Validation Modal */}
       <ValidationModal />
 
-      {/* 9. Workstation Guide & Help Modal */}
+      {/* 10. INCOIS Coastal Disaster Situation Room Modal */}
+      <DisasterModal />
+
+      {/* 11. Public Outreach & Science Communication Guided Tour */}
+      <StoryTourModal />
+
+      {/* 12. Workstation Guide & Help Modal */}
       <HelpModal />
     </main>
   );

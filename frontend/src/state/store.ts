@@ -44,6 +44,19 @@ interface AppState {
   activePresetRegion: PresetRegion;
   showHelpModal: boolean;
   
+  // Disaster Management & Early Warning States
+  disasterMode: boolean;
+  showWarningModal: boolean;
+  activeAlert: any | null;
+  isSarMode: boolean;
+  sarPoint: { lat: number; lon: number } | null;
+  sarResult: any | null;
+  sarObjectType: string;
+  showGlider: boolean;
+  selectedGlider: any | null;
+  showStoryTour: boolean;
+  tourStep: number;
+  
   // Actions
   setViewMode: (mode: ViewMode) => void;
   setActiveVariable: (v: OceanVariable) => void;
@@ -67,6 +80,17 @@ interface AppState {
   setCameraTarget: (target: [number, number, number] | null) => void;
   setActivePresetRegion: (region: PresetRegion) => void;
   setShowHelpModal: (show: boolean) => void;
+  setDisasterMode: (active: boolean) => void;
+  setShowWarningModal: (show: boolean) => void;
+  setActiveAlert: (alert: any | null) => void;
+  setIsSarMode: (active: boolean) => void;
+  setSarPoint: (pt: { lat: number; lon: number } | null) => void;
+  setSarResult: (res: any | null) => void;
+  setSarObjectType: (type: string) => void;
+  setShowGlider: (show: boolean) => void;
+  setSelectedGlider: (glider: any | null) => void;
+  setShowStoryTour: (show: boolean) => void;
+  setTourStep: (step: number) => void;
   resetCamera: () => void;
 }
 
@@ -103,6 +127,18 @@ export const useStore = create<AppState>((set) => ({
   activePresetRegion: 'all',
   showHelpModal: false,
   
+  disasterMode: false,
+  showWarningModal: false,
+  activeAlert: null,
+  isSarMode: false,
+  sarPoint: null,
+  sarResult: null,
+  sarObjectType: 'life_raft',
+  showGlider: true,
+  selectedGlider: null,
+  showStoryTour: false,
+  tourStep: 0,
+  
   setViewMode: (mode) => set({ viewMode: mode }),
   setActiveVariable: (v) => set({ 
     activeVariable: v,
@@ -128,5 +164,16 @@ export const useStore = create<AppState>((set) => ({
   setCameraTarget: (target) => set({ cameraTarget: target }),
   setActivePresetRegion: (region) => set({ activePresetRegion: region }),
   setShowHelpModal: (show) => set({ showHelpModal: show }),
+  setDisasterMode: (active) => set({ disasterMode: active }),
+  setShowWarningModal: (show) => set({ showWarningModal: show }),
+  setActiveAlert: (alert) => set({ activeAlert: alert }),
+  setIsSarMode: (active) => set({ isSarMode: active }),
+  setSarPoint: (pt) => set({ sarPoint: pt }),
+  setSarResult: (res) => set({ sarResult: res }),
+  setSarObjectType: (type) => set({ sarObjectType: type }),
+  setShowGlider: (show) => set({ showGlider: show }),
+  setSelectedGlider: (glider) => set({ selectedGlider: glider }),
+  setShowStoryTour: (show) => set({ showStoryTour: show, tourStep: 0 }),
+  setTourStep: (step) => set({ tourStep: step }),
   resetCamera: () => set({ cameraTarget: [22, 18, 38] }),
 }));
