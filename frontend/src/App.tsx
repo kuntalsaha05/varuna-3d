@@ -10,6 +10,7 @@ import { ScientificLegend } from './components/ScientificLegend';
 import { ValidationModal } from './components/ValidationModal';
 import { DisasterModal } from './components/DisasterModal';
 import { StoryTourModal } from './components/StoryTourModal';
+import { AiCopilotModal } from './components/AiCopilotModal';
 import { HelpModal } from './components/HelpModal';
 
 export default function App() {
@@ -48,7 +49,10 @@ export default function App() {
       {/* 11. Public Outreach & Science Communication Guided Tour */}
       <StoryTourModal />
 
-      {/* 12. Workstation Guide & Help Modal */}
+      {/* 12. Varuna-AI Oceanographic Copilot Assistant */}
+      <AiCopilotModal />
+
+      {/* 13. Workstation Guide & Help Modal */}
       <HelpModal />
     </main>
   );

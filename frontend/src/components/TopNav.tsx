@@ -8,7 +8,9 @@ import {
   HelpCircle,
   ShieldAlert,
   GraduationCap,
-  LifeBuoy
+  LifeBuoy,
+  Bot,
+  Sparkles
 } from 'lucide-react';
 
 export const TopNav: React.FC = () => {
@@ -25,7 +27,9 @@ export const TopNav: React.FC = () => {
     setShowStoryTour,
     isSarMode,
     setIsSarMode,
-    setSarPoint
+    setSarPoint,
+    showAiCopilot,
+    setShowAiCopilot
   } = useStore();
 
   return (
@@ -80,6 +84,20 @@ export const TopNav: React.FC = () => {
       {/* Action Controls & Operational Modules */}
       <div className="flex items-center gap-2 text-xs text-slate-300">
         
+        {/* 0. Varuna-AI Copilot Trigger */}
+        <button
+          onClick={() => setShowAiCopilot(!showAiCopilot)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition border shadow-lg ${
+            showAiCopilot
+              ? 'bg-gradient-to-r from-cyan-400 to-indigo-500 text-slate-950 border-cyan-300 shadow-cyan-500/40'
+              : 'bg-slate-900 border-cyan-500/50 text-cyan-300 hover:bg-slate-800 shadow-cyan-950/40'
+          }`}
+          title="Varuna-AI Oceanographic Copilot & Decision Support"
+        >
+          <Bot size={15} className="text-cyan-400" />
+          <span>AI Copilot</span>
+        </button>
+
         {/* 1. Science Tour / Outreach Button */}
         <button
           onClick={() => setShowStoryTour(!showStoryTour)}

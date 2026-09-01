@@ -9,6 +9,7 @@ import { FloatMarkers } from './FloatMarkers';
 import { CurrentVectorField } from './CurrentVectorField';
 import { SarDriftLayer } from './SarDriftLayer';
 import { GliderSawtooth } from './GliderSawtooth';
+import { AiAnomalyLayer } from './AiAnomalyLayer';
 
 const CameraHandler: React.FC = () => {
   const { viewMode, cameraTarget } = useStore();
@@ -55,6 +56,7 @@ export const Viewport3D: React.FC = () => {
           <CurrentVectorField />
           <GliderSawtooth />
           <SarDriftLayer />
+          <AiAnomalyLayer />
         </Suspense>
 
         <CameraHandler />

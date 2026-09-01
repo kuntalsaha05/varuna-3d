@@ -57,6 +57,12 @@ interface AppState {
   showStoryTour: boolean;
   tourStep: number;
   
+  // Varuna-AI Ocean Intelligence States
+  showAiCopilot: boolean;
+  showAiAnomalies: boolean;
+  aiAnomalies: any[];
+  selectedAnomaly: any | null;
+  
   // Actions
   setViewMode: (mode: ViewMode) => void;
   setActiveVariable: (v: OceanVariable) => void;
@@ -91,6 +97,10 @@ interface AppState {
   setSelectedGlider: (glider: any | null) => void;
   setShowStoryTour: (show: boolean) => void;
   setTourStep: (step: number) => void;
+  setShowAiCopilot: (show: boolean) => void;
+  setShowAiAnomalies: (show: boolean) => void;
+  setAiAnomalies: (anomalies: any[]) => void;
+  setSelectedAnomaly: (anomaly: any | null) => void;
   resetCamera: () => void;
 }
 
@@ -139,6 +149,11 @@ export const useStore = create<AppState>((set) => ({
   showStoryTour: false,
   tourStep: 0,
   
+  showAiCopilot: false,
+  showAiAnomalies: true,
+  aiAnomalies: [],
+  selectedAnomaly: null,
+  
   setViewMode: (mode) => set({ viewMode: mode }),
   setActiveVariable: (v) => set({ 
     activeVariable: v,
@@ -175,5 +190,9 @@ export const useStore = create<AppState>((set) => ({
   setSelectedGlider: (glider) => set({ selectedGlider: glider }),
   setShowStoryTour: (show) => set({ showStoryTour: show, tourStep: 0 }),
   setTourStep: (step) => set({ tourStep: step }),
+  setShowAiCopilot: (show) => set({ showAiCopilot: show }),
+  setShowAiAnomalies: (show) => set({ showAiAnomalies: show }),
+  setAiAnomalies: (anomalies) => set({ aiAnomalies: anomalies }),
+  setSelectedAnomaly: (anomaly) => set({ selectedAnomaly: anomaly }),
   resetCamera: () => set({ cameraTarget: [22, 18, 38] }),
 }));

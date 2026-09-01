@@ -50,6 +50,7 @@ export const ControlPanel: React.FC = () => {
     sarResult,
     activePresetRegion,
     setActivePresetRegion,
+    setCameraTarget,
     setTimeIndex,
     setMetadata
   } = useStore();
