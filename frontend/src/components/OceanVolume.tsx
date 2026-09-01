@@ -11,7 +11,12 @@ export const OceanVolume: React.FC = () => {
   useEffect(() => {
     axios.get('http://127.0.0.1:8000/api/v1/slice/depth', {
       params: { depth: selectedDepth, time_index: timeIndex, variable: activeVariable }
-    }).then(res => setSliceData(res.data)).catch(console.error);
+    }).then(res => {
+      setSliceData(res.data);
+      if (res.data.min_val !== undefined && res.data.max_val !== undefined) {
+        useStore.getState().setRangeVals(res.data.min_val, res.data.max_val);
+      }
+    }).catch(console.error);
   }, [activeVariable, selectedDepth, timeIndex]);
 
   const texture = useMemo(() => {

@@ -14,7 +14,7 @@ interface FloatMarkerData {
 
 export const FloatMarkers: React.FC = () => {
   const [floats, setFloats] = useState<FloatMarkerData[]>([]);
-  const { viewMode, verticalExaggeration, setSelectedFloatId, setHoveredCoords } = useStore();
+  const { viewMode, verticalExaggeration, selectedFloatId, setSelectedFloatId, setHoveredCoords } = useStore();
   const pulseRingsRef = useRef<THREE.Group>(null);
 
   useEffect(() => {
@@ -67,8 +67,11 @@ export const FloatMarkers: React.FC = () => {
           pos[1] += 0.4;
         }
 
+        const isSelected = selectedFloatId === f.PLATFORM_NUMBER;
+        const scale = isSelected ? 1.6 : 1.0;
+
         return (
-          <group key={f.PLATFORM_NUMBER} position={pos}>
+          <group key={f.PLATFORM_NUMBER} position={pos} scale={[scale, scale, scale]}>
             <mesh
               onClick={(e) => {
                 e.stopPropagation();
@@ -84,11 +87,11 @@ export const FloatMarkers: React.FC = () => {
                 setHoveredCoords(null);
               }}
             >
-              <sphereGeometry args={[0.32, 16, 16]} />
+              <sphereGeometry args={[0.3, 16, 16]} />
               <meshStandardMaterial
-                color='#ffb703'
-                emissive='#fb8500'
-                emissiveIntensity={0.8}
+                color={isSelected ? '#00f5d4' : '#ffb703'}
+                emissive={isSelected ? '#00bbf9' : '#fb8500'}
+                emissiveIntensity={isSelected ? 1.5 : 0.8}
                 roughness={0.2}
               />
             </mesh>

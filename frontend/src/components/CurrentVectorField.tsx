@@ -15,10 +15,10 @@ interface Particle {
 }
 
 export const CurrentVectorField: React.FC = () => {
-  const { viewMode, selectedDepth, verticalExaggeration, showCurrents } = useStore();
+  const { viewMode, selectedDepth, verticalExaggeration, showCurrents, particleDensity } = useStore();
   const pointsRef = useRef<THREE.Points>(null);
 
-  const COUNT = 1200;
+  const COUNT = particleDensity || 1200;
 
   const particles = useMemo(() => {
     const arr: Particle[] = [];
@@ -33,7 +33,7 @@ export const CurrentVectorField: React.FC = () => {
       });
     }
     return arr;
-  }, [selectedDepth]);
+  }, [selectedDepth, COUNT]);
 
   const [positions, colors] = useMemo(() => {
     const pos = new Float32Array(COUNT * 3);

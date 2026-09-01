@@ -5,12 +5,17 @@ import { useStore } from '../state/store';
 import { X, Activity, Download, Anchor } from 'lucide-react';
 
 export const ValidationModal: React.FC = () => {
-  const { selectedFloatId, setSelectedFloatId, activeVariable } = useStore();
+  const {
+    selectedFloatId,
+    activeVariable,
+    showModalExpanded,
+    setShowModalExpanded
+  } = useStore();
   const [valData, setValData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!selectedFloatId) return;
+    if (!selectedFloatId || !showModalExpanded) return;
     setLoading(true);
     axios.get('http://127.0.0.1:8000/api/v1/validation/profile', {
       params: { platform_number: selectedFloatId, variable: activeVariable }
@@ -20,7 +25,7 @@ export const ValidationModal: React.FC = () => {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [selectedFloatId, activeVariable]);
+  }, [selectedFloatId, activeVariable, showModalExpanded]);
 
   const handleExportCSV = () => {
     if (!valData) return;
@@ -38,7 +43,7 @@ export const ValidationModal: React.FC = () => {
     a.click();
   };
 
-  if (!selectedFloatId) return null;
+  if (!showModalExpanded || !selectedFloatId) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-6">
@@ -75,7 +80,7 @@ export const ValidationModal: React.FC = () => {
             </button>
 
             <button
-              onClick={() => setSelectedFloatId(null)}
+              onClick={() => setShowModalExpanded(false)}
               className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 border border-transparent hover:border-slate-800 transition"
             >
               <X size={20} />

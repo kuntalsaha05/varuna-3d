@@ -3,6 +3,7 @@ import { PaletteName } from '../utils/colormaps';
 
 export type ViewMode = 'globe' | 'box';
 export type OceanVariable = 'temp' | 'sal' | 'sst' | 'chlorophyll';
+export type PresetRegion = 'all' | 'arabian_sea' | 'bay_of_bengal' | 'equator';
 
 interface AppState {
   // Mode & Layer Controls
@@ -14,11 +15,16 @@ interface AppState {
   colorPalette: PaletteName;
   layerOpacity: number;
   
+  // Real-time Data Bounds for Legend & Headers
+  currentMinVal: number;
+  currentMaxVal: number;
+  
   // Layer Toggles
   showCurrents: boolean;
   showClouds: boolean;
   showAtmosphere: boolean;
   showBathymetry: boolean;
+  particleDensity: number;
   
   // 4D Temporal Playback
   isPlayingTime: boolean;
@@ -31,8 +37,12 @@ interface AppState {
   
   // In-Situ & Hover Telemetry
   selectedFloatId: number | null;
+  inspectorOpen: boolean;
+  showModalExpanded: boolean;
   hoveredCoords: { lat: number; lon: number; depth?: number; val?: number } | null;
   cameraTarget: [number, number, number] | null;
+  activePresetRegion: PresetRegion;
+  showHelpModal: boolean;
   
   // Actions
   setViewMode: (mode: ViewMode) => void;
@@ -42,15 +52,22 @@ interface AppState {
   setVerticalExaggeration: (scale: number) => void;
   setColorPalette: (p: PaletteName) => void;
   setLayerOpacity: (op: number) => void;
+  setRangeVals: (min: number, max: number) => void;
   setShowCurrents: (show: boolean) => void;
   setShowClouds: (show: boolean) => void;
   setShowAtmosphere: (show: boolean) => void;
+  setParticleDensity: (density: number) => void;
   setIsPlayingTime: (playing: boolean) => void;
   setPlaybackSpeed: (speed: number) => void;
   setMetadata: (depths: number[], times: string[], vars: string[]) => void;
   setSelectedFloatId: (id: number | null) => void;
+  setInspectorOpen: (open: boolean) => void;
+  setShowModalExpanded: (show: boolean) => void;
   setHoveredCoords: (coords: { lat: number; lon: number; depth?: number; val?: number } | null) => void;
   setCameraTarget: (target: [number, number, number] | null) => void;
+  setActivePresetRegion: (region: PresetRegion) => void;
+  setShowHelpModal: (show: boolean) => void;
+  resetCamera: () => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -62,10 +79,14 @@ export const useStore = create<AppState>((set) => ({
   colorPalette: 'thermal',
   layerOpacity: 0.88,
   
+  currentMinVal: 10.0,
+  currentMaxVal: 31.5,
+  
   showCurrents: true,
   showClouds: true,
   showAtmosphere: true,
   showBathymetry: true,
+  particleDensity: 1200,
   
   isPlayingTime: false,
   playbackSpeed: 1,
@@ -75,8 +96,12 @@ export const useStore = create<AppState>((set) => ({
   variables: ['temp', 'sal', 'sst', 'chlorophyll'],
   
   selectedFloatId: null,
+  inspectorOpen: false,
+  showModalExpanded: false,
   hoveredCoords: null,
   cameraTarget: null,
+  activePresetRegion: 'all',
+  showHelpModal: false,
   
   setViewMode: (mode) => set({ viewMode: mode }),
   setActiveVariable: (v) => set({ 
@@ -88,13 +113,20 @@ export const useStore = create<AppState>((set) => ({
   setVerticalExaggeration: (scale) => set({ verticalExaggeration: scale }),
   setColorPalette: (p) => set({ colorPalette: p }),
   setLayerOpacity: (op) => set({ layerOpacity: op }),
+  setRangeVals: (min, max) => set({ currentMinVal: min, currentMaxVal: max }),
   setShowCurrents: (show) => set({ showCurrents: show }),
   setShowClouds: (show) => set({ showClouds: show }),
   setShowAtmosphere: (show) => set({ showAtmosphere: show }),
+  setParticleDensity: (density) => set({ particleDensity: density }),
   setIsPlayingTime: (playing) => set({ isPlayingTime: playing }),
   setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
   setMetadata: (depths, times, vars) => set({ availableDepths: depths, timeSteps: times, variables: vars }),
-  setSelectedFloatId: (id) => set({ selectedFloatId: id }),
+  setSelectedFloatId: (id) => set({ selectedFloatId: id, inspectorOpen: id !== null }),
+  setInspectorOpen: (open) => set({ inspectorOpen: open }),
+  setShowModalExpanded: (show) => set({ showModalExpanded: show }),
   setHoveredCoords: (coords) => set({ hoveredCoords: coords }),
   setCameraTarget: (target) => set({ cameraTarget: target }),
+  setActivePresetRegion: (region) => set({ activePresetRegion: region }),
+  setShowHelpModal: (show) => set({ showHelpModal: show }),
+  resetCamera: () => set({ cameraTarget: [22, 18, 38] }),
 }));
