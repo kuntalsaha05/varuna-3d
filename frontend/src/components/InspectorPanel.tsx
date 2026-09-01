@@ -54,7 +54,7 @@ export const InspectorPanel: React.FC = () => {
   };
 
   return (
-    <aside className="absolute top-26 right-6 z-10 w-92 bg-slate-950/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-4 shadow-2xl text-slate-100 space-y-3 max-h-[78vh] overflow-y-auto select-none pointer-events-auto">
+    <aside className="absolute top-[96px] right-6 z-20 w-84 bg-slate-950/95 backdrop-blur-xl border border-slate-800/90 rounded-2xl p-4 shadow-2xl text-slate-100 space-y-3 max-h-[calc(100vh-180px)] overflow-y-auto select-none pointer-events-auto">
       {/* Inspector Header */}
       <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
         <div className="flex items-center gap-2">

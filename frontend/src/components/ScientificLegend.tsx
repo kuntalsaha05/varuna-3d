@@ -18,7 +18,7 @@ export const ScientificLegend: React.FC = () => {
   const gradient = getPaletteGradientCSS(colorPalette);
 
   return (
-    <div className="absolute bottom-6 right-6 z-10 flex flex-col items-end gap-2 pointer-events-auto select-none">
+    <div className="absolute bottom-6 right-6 z-20 flex flex-col items-end gap-2 pointer-events-auto select-none">
       
       {/* 1. Dismissible Interaction Guide Hint */}
       {showHint && (

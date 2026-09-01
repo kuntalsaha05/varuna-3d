@@ -21,7 +21,7 @@ export const DataHeader: React.FC = () => {
 
 
   return (
-    <div className="absolute top-14 left-0 right-0 z-10 flex items-center justify-between px-6 py-2 bg-slate-950/85 backdrop-blur-md border-b border-slate-800/70 text-xs text-slate-300 shadow-md pointer-events-auto select-none">
+    <div className="absolute top-[52px] left-0 right-0 z-20 flex items-center justify-between px-6 py-2 bg-slate-950/85 backdrop-blur-md border-b border-slate-800/70 text-xs text-slate-300 shadow-md pointer-events-auto select-none">
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 font-semibold text-slate-100 shadow-inner">
           <Layers size={13} className="text-cyan-400" />

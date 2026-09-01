@@ -13,7 +13,7 @@ export const TopNav: React.FC = () => {
   } = useStore();
 
   return (
-    <header className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-6 py-2.5 bg-slate-950/90 backdrop-blur-lg border-b border-slate-800/80 shadow-2xl">
+    <header className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-2.5 bg-slate-950/90 backdrop-blur-lg border-b border-slate-800/80 shadow-2xl">
       {/* Brand & MoES / INCOIS Title */}
       <div className="flex items-center gap-3.5">
         <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 via-sky-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/25 border border-cyan-400/30">

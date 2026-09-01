@@ -30,7 +30,7 @@ export const TimeScrubber: React.FC = () => {
   const activeDate = timeSteps[currentStep] || '2024-01-10 10-Day Forecast';
 
   return (
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 w-full max-w-xl bg-slate-950/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl px-5 py-3 shadow-2xl text-slate-100 flex items-center gap-4 select-none pointer-events-auto">
+    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 w-full max-w-xl bg-slate-950/95 backdrop-blur-xl border border-slate-800/90 rounded-2xl px-5 py-3 shadow-2xl text-slate-100 flex items-center gap-4 select-none pointer-events-auto">
       {/* Play / Pause / Step Controls */}
       <div className="flex items-center gap-1.5">
         <button

@@ -45,7 +45,7 @@ export const ControlPanel: React.FC = () => {
     setMetadata
   } = useStore();
 
-  const [showLayerMenu, setShowLayerMenu] = useState(false);
+  const [showLayerMenu, setShowLayerMenu] = useState(true);
 
   useEffect(() => {
     axios.get('http://127.0.0.1:8000/api/v1/slice/metadata')
@@ -94,7 +94,7 @@ export const ControlPanel: React.FC = () => {
   };
 
   return (
-    <aside className="absolute top-26 left-6 z-10 w-76 bg-slate-950/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-4 shadow-2xl text-slate-100 space-y-3.5 select-none pointer-events-auto">
+    <aside className="absolute top-[96px] left-6 z-20 w-80 bg-slate-950/95 backdrop-blur-xl border border-slate-800/90 rounded-2xl p-4 shadow-2xl text-slate-100 space-y-3.5 select-none pointer-events-auto max-h-[calc(100vh-180px)] overflow-y-auto">
       
       {/* ────────────────────────────────────────────────────────── */}
       {/* 1. VARIABLE SELECTOR DROPDOWN MENU                        */}
