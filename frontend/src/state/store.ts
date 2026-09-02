@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { PaletteName } from '../utils/colormaps';
 
-export type ViewMode = 'globe' | 'box';
+export type ViewMode = 'split' | 'globe' | 'box';
 export type OceanVariable = 'temp' | 'sal' | 'sst' | 'chlorophyll';
 export type PresetRegion = 'all' | 'arabian_sea' | 'bay_of_bengal' | 'equator';
 
@@ -25,6 +25,7 @@ interface AppState {
   showAtmosphere: boolean;
   showBathymetry: boolean;
   particleDensity: number;
+  showInnovationPanel: boolean;
   
   // 4D Temporal Playback
   isPlayingTime: boolean;
@@ -75,7 +76,9 @@ interface AppState {
   setShowCurrents: (show: boolean) => void;
   setShowClouds: (show: boolean) => void;
   setShowAtmosphere: (show: boolean) => void;
+  setShowBathymetry: (show: boolean) => void;
   setParticleDensity: (density: number) => void;
+  setShowInnovationPanel: (show: boolean) => void;
   setIsPlayingTime: (playing: boolean) => void;
   setPlaybackSpeed: (speed: number) => void;
   setMetadata: (depths: number[], times: string[], vars: string[]) => void;
@@ -105,13 +108,13 @@ interface AppState {
 }
 
 export const useStore = create<AppState>((set) => ({
-  viewMode: 'globe',
+  viewMode: 'split',
   activeVariable: 'temp',
   selectedDepth: 5.0,
   timeIndex: -1,
-  verticalExaggeration: 30,
+  verticalExaggeration: 40,
   colorPalette: 'thermal',
-  layerOpacity: 0.88,
+  layerOpacity: 0.92,
   
   currentMinVal: 10.0,
   currentMaxVal: 31.5,
@@ -120,7 +123,8 @@ export const useStore = create<AppState>((set) => ({
   showClouds: true,
   showAtmosphere: true,
   showBathymetry: true,
-  particleDensity: 1200,
+  particleDensity: 1600,
+  showInnovationPanel: true,
   
   isPlayingTime: false,
   playbackSpeed: 1,
@@ -168,6 +172,8 @@ export const useStore = create<AppState>((set) => ({
   setShowCurrents: (show) => set({ showCurrents: show }),
   setShowClouds: (show) => set({ showClouds: show }),
   setShowAtmosphere: (show) => set({ showAtmosphere: show }),
+  setShowBathymetry: (show) => set({ showBathymetry: show }),
+  setShowInnovationPanel: (show) => set({ showInnovationPanel: show }),
   setParticleDensity: (density) => set({ particleDensity: density }),
   setIsPlayingTime: (playing) => set({ isPlayingTime: playing }),
   setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),

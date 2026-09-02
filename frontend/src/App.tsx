@@ -12,6 +12,7 @@ import { DisasterModal } from './components/DisasterModal';
 import { StoryTourModal } from './components/StoryTourModal';
 import { AiCopilotModal } from './components/AiCopilotModal';
 import { AiAnomalyModal } from './components/AiAnomalyModal';
+import { InnovationShowcase } from './components/InnovationShowcase';
 import { HelpModal } from './components/HelpModal';
 
 export default function App() {
@@ -56,7 +57,10 @@ export default function App() {
       {/* 13. AI Ocean Anomaly Deep Diagnostic Modal */}
       <AiAnomalyModal />
 
-      {/* 14. Workstation Guide & Help Modal */}
+      {/* 14. 💡 Innovation & Uniqueness Showcase Section */}
+      <InnovationShowcase />
+
+      {/* 15. Workstation Guide & Help Modal */}
       <HelpModal />
     </main>
   );

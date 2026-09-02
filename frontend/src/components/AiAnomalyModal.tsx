@@ -29,7 +29,7 @@ export const AiAnomalyModal: React.FC = () => {
   const isSalinity = (selectedAnomaly?.type?.includes('Barrier') || selectedAnomaly?.type?.includes('Salinity')) ?? false;
 
   const handleInspectIn3D = () => {
-    if (selectedAnomaly.lat && selectedAnomaly.lon) {
+    if (selectedAnomaly && selectedAnomaly.lat && selectedAnomaly.lon) {
       if (isSalinity) {
         setActiveVariable('sal');
         setSelectedDepth(10);

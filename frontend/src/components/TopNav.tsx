@@ -54,30 +54,44 @@ export const TopNav: React.FC = () => {
         </div>
       </div>
 
-      {/* View Mode Switcher (Globe vs Box) */}
-      <div className="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 shadow-inner">
+      {/* View Mode Switcher (Split vs Globe vs Box) */}
+      <div className="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 shadow-inner gap-1">
         <button
-          onClick={() => setViewMode('globe')}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-            viewMode === 'globe'
-              ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 shadow-md shadow-cyan-500/20'
+          onClick={() => setViewMode('split')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            viewMode === 'split'
+              ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 shadow-md shadow-cyan-500/20 font-bold'
               : 'text-slate-400 hover:text-slate-200'
           }`}
+          title="Dual Split Screen View (Globe + Volumetric Box)"
         >
-          <Globe size={14} />
-          <span>3D Globe</span>
+          <span>Split View</span>
+        </button>
+
+        <button
+          onClick={() => setViewMode('globe')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            viewMode === 'globe'
+              ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 shadow-md shadow-cyan-500/20 font-bold'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+          title="Fullscreen 3D Globe"
+        >
+          <Globe size={13} />
+          <span>Globe</span>
         </button>
 
         <button
           onClick={() => setViewMode('box')}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
             viewMode === 'box'
-              ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 shadow-md shadow-cyan-500/20'
+              ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 shadow-md shadow-cyan-500/20 font-bold'
               : 'text-slate-400 hover:text-slate-200'
           }`}
+          title="Fullscreen Volumetric Box"
         >
-          <Box size={14} />
-          <span>Volumetric Box</span>
+          <Box size={13} />
+          <span>Volumetric</span>
         </button>
       </div>
 
