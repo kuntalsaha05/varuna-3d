@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
-import axios from 'axios';
 import { useStore } from '../state/store';
 import { geoTo3D, geoToSpherical, EARTH_RADIUS } from '../utils/coordinates';
 
@@ -18,18 +17,24 @@ export const CurrentVectorField: React.FC = () => {
   const { viewMode, selectedDepth, verticalExaggeration, showCurrents, particleDensity } = useStore();
   const pointsRef = useRef<THREE.Points>(null);
 
-  const COUNT = particleDensity || 1200;
+  const COUNT = Math.max(1200, particleDensity || 1600);
+
+  // Basin Geographic Domain: Full Indian Ocean + Arabian Sea + Bay of Bengal + Equator
+  const MIN_LAT = -10.0;
+  const MAX_LAT = 26.0;
+  const MIN_LON = 45.0;
+  const MAX_LON = 98.0;
 
   const particles = useMemo(() => {
     const arr: Particle[] = [];
     for (let i = 0; i < COUNT; i++) {
       arr.push({
-        lat: 5.0 + Math.random() * 20.0,
-        lon: 65.0 + Math.random() * 25.0,
-        depth: selectedDepth + (Math.random() - 0.5) * 50.0,
+        lat: MIN_LAT + Math.random() * (MAX_LAT - MIN_LAT),
+        lon: MIN_LON + Math.random() * (MAX_LON - MIN_LON),
+        depth: selectedDepth + (Math.random() - 0.5) * 30.0,
         life: Math.random() * 100,
-        maxLife: 80 + Math.random() * 40,
-        speed: 0.2 + Math.random() * 0.4
+        maxLife: 90 + Math.random() * 50,
+        speed: 0.35 + Math.random() * 0.45
       });
     }
     return arr;
@@ -44,30 +49,73 @@ export const CurrentVectorField: React.FC = () => {
   useFrame(() => {
     if (!showCurrents || !pointsRef.current) return;
 
+    // Depth attenuation factor: surface currents are strongest, decay through thermocline
+    const depthDecay = Math.exp(-selectedDepth / 350.0);
+
     for (let i = 0; i < COUNT; i++) {
       const p = particles[i];
       p.life += 1;
 
-      if (p.life > p.maxLife || p.lat < 4.0 || p.lat > 26.0 || p.lon < 64.0 || p.lon > 91.0) {
-        p.lat = 5.0 + Math.random() * 20.0;
-        p.lon = 65.0 + Math.random() * 25.0;
+      // Respawn particle if it expires or leaves ocean domain
+      if (
+        p.life > p.maxLife ||
+        p.lat < MIN_LAT || p.lat > MAX_LAT ||
+        p.lon < MIN_LON || p.lon > MAX_LON
+      ) {
+        p.lat = MIN_LAT + Math.random() * (MAX_LAT - MIN_LAT);
+        p.lon = MIN_LON + Math.random() * (MAX_LON - MIN_LON);
         p.life = 0;
       }
 
-      const somaliFactor = Math.exp(-Math.pow(p.lon - 66.0, 2) / 16.0);
-      const u = (-0.3 * Math.sin((p.lat - 15) * 0.2) + somaliFactor * 0.7) * p.speed;
-      const v = (0.4 * Math.cos((p.lon - 70) * 0.15) + somaliFactor * 0.8) * p.speed;
+      // ─────────────────────────────────────────────────────────────
+      // FULL INDIAN OCEAN HYDRODYNAMIC CURRENT VECTOR FORMULATION:
+      // ─────────────────────────────────────────────────────────────
+      
+      // 1. Equatorial Wyrtki Jet (0°N - 5°N): Strong eastward flow
+      const wyrtkiZone = Math.exp(-Math.pow(p.lat - 1.5, 2) / 6.0);
+      const u_wyrtki = wyrtkiZone * 1.4;
+      const v_wyrtki = wyrtkiZone * 0.1;
 
-      p.lon += u * 0.08;
-      p.lat += v * 0.08;
+      // 2. Somali Current Jet (Western Boundary 45°E - 62°E, 0°N - 14°N): Intense NE flow
+      const somaliCore = Math.exp(-Math.pow(p.lon - 54.0, 2) / 30.0) * (p.lat > 0 && p.lat < 16 ? 1.0 : 0.0);
+      const u_somali = somaliCore * 1.6;
+      const v_somali = somaliCore * 1.8;
+
+      // 3. Arabian Sea Clockwise Gyre (10°N - 24°N, 58°E - 75°E)
+      const asCore = (p.lon >= 58 && p.lon <= 77 && p.lat >= 8 && p.lat <= 25) ? 1.0 : 0.0;
+      const u_as = asCore * (-0.5 * Math.sin((p.lat - 15) * 0.22) + 0.3);
+      const v_as = asCore * (0.6 * Math.cos((p.lon - 66) * 0.18));
+
+      // 4. West India Coastal Current (WICC, along 71°E - 77°E, southward flow)
+      const wiccCore = (p.lon >= 71 && p.lon <= 76 && p.lat >= 8 && p.lat <= 20) ? 1.0 : 0.0;
+      const u_wicc = wiccCore * -0.2;
+      const v_wicc = wiccCore * -0.8;
+
+      // 5. Bay of Bengal Recirculation & East India Coastal Current (EICC, 80°E - 95°E)
+      const bobCore = (p.lon >= 78 && p.lon <= 96 && p.lat >= 6 && p.lat <= 24) ? 1.0 : 0.0;
+      const u_bob = bobCore * (0.45 * Math.cos((p.lat - 14) * 0.2) - 0.2);
+      const v_bob = bobCore * (-0.5 * Math.sin((p.lon - 88) * 0.18) + 0.25);
+
+      // 6. South Equatorial Current (SEC, south of Equator -10°S to -2°S): Broad westward flow
+      const secCore = (p.lat <= 0) ? 1.0 : 0.0;
+      const u_sec = secCore * -0.85;
+      const v_sec = secCore * -0.15;
+
+      // Combine geostrophic velocities with particle speed & depth attenuation
+      const u = (u_wyrtki + u_somali + u_as + u_wicc + u_bob + u_sec) * p.speed * depthDecay;
+      const v = (v_wyrtki + v_somali + v_as + v_wicc + v_bob + v_sec) * p.speed * depthDecay;
+
+      // Step advection
+      p.lon += u * 0.065;
+      p.lat += v * 0.065;
 
       let px = 0, py = 0, pz = 0;
       if (viewMode === 'globe') {
-        const [x, y, z] = geoToSpherical(p.lat, p.lon, EARTH_RADIUS + 0.2, selectedDepth);
+        const [x, y, z] = geoToSpherical(p.lat, p.lon, EARTH_RADIUS + 0.18, selectedDepth);
         px = x; py = y; pz = z;
       } else {
         const [x, y, z] = geoTo3D(p.lat, p.lon, selectedDepth, verticalExaggeration);
-        px = x; py = y + 0.1; pz = z;
+        px = x; py = y + 0.15; pz = z;
       }
 
       const idx = i * 3;
@@ -75,13 +123,14 @@ export const CurrentVectorField: React.FC = () => {
       positions[idx + 1] = py;
       positions[idx + 2] = pz;
 
-      const currentSpeed = Math.sqrt(u * u + v * v);
-      const intensity = Math.min(1.0, currentSpeed * 1.8);
+      const speedMagnitude = Math.sqrt(u * u + v * v);
+      const speedNorm = Math.min(1.0, speedMagnitude / 1.5);
       const alpha = Math.sin((p.life / p.maxLife) * Math.PI);
 
-      colors[idx] = (0.0 + intensity * 0.8) * alpha;
-      colors[idx + 1] = (0.8 + intensity * 0.2) * alpha;
-      colors[idx + 2] = 1.0 * alpha;
+      // Color mapping: Cyan (moderate) -> Yellow/Coral (fast currents like Somali Jet)
+      colors[idx] = (0.1 + speedNorm * 0.85) * alpha;
+      colors[idx + 1] = (0.75 + speedNorm * 0.2) * alpha;
+      colors[idx + 2] = (1.0 - speedNorm * 0.6) * alpha;
     }
 
     pointsRef.current.geometry.attributes.position.needsUpdate = true;
@@ -107,13 +156,14 @@ export const CurrentVectorField: React.FC = () => {
         />
       </bufferGeometry>
       <pointsMaterial
-        size={viewMode === 'globe' ? 0.35 : 0.45}
+        size={viewMode === 'globe' ? 0.38 : 0.52}
         vertexColors
         transparent
-        opacity={0.85}
+        opacity={0.9}
         blending={THREE.AdditiveBlending}
         depthWrite={false}
       />
     </points>
   );
 };
+
