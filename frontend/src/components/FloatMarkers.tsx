@@ -32,7 +32,7 @@ export const FloatMarkers: React.FC = () => {
   const anyModalOpen = showModalExpanded || showWarningModal || showHelpModal;
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/v1/observations/floats?limit=350')
+    axios.get('http://127.0.0.1:8000/api/v1/observations/floats?limit=1000')
       .then(res => setFloats(res.data.floats))
       .catch(console.error);
   }, []);

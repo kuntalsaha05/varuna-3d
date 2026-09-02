@@ -2,7 +2,7 @@ import React, { Suspense, useEffect, useRef } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars } from '@react-three/drei';
 import * as THREE from 'three';
-import { useStore } from '../state/store';
+import { useStore, VOLUMETRIC_REGIONS, VolumetricRegionKey } from '../state/store';
 import { EarthGlobe } from './EarthGlobe';
 import { OceanVolume } from './OceanVolume';
 import { FloatMarkers } from './FloatMarkers';
@@ -48,7 +48,7 @@ const BoxCameraHandler: React.FC = () => {
 };
 
 export const Viewport3D: React.FC = () => {
-  const { viewMode, setViewMode } = useStore();
+  const { viewMode, setViewMode, volumetricRegion, setVolumetricRegion } = useStore();
 
   return (
     <div className="w-full h-full relative flex overflow-hidden select-none bg-[#01040d]">
@@ -124,27 +124,57 @@ export const Viewport3D: React.FC = () => {
       {(viewMode === 'split' || viewMode === 'box') && (
         <div className={`relative h-full transition-all duration-300 ${viewMode === 'split' ? 'w-1/2' : 'w-full'}`}>
           
-          {/* Top Pill Banner: 📦 3D Regional Volumetric Box View */}
-          <div className="absolute top-20 left-6 z-25 flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-950/90 backdrop-blur-xl border border-sky-500/50 shadow-2xl text-sky-300 text-xs font-bold pointer-events-auto">
-            <span>📦 3D Regional Volumetric Box View</span>
-            <span className="text-slate-400 text-[10px] font-normal">| Bay of Bengal - Vertical Section (0m to 2000m)</span>
-            {viewMode === 'split' ? (
-              <button
-                onClick={() => setViewMode('box')}
-                className="ml-2 text-slate-400 hover:text-white transition p-0.5"
-                title="Maximize Volumetric Box View"
-              >
-                <Maximize2 size={12} />
-              </button>
-            ) : (
-              <button
-                onClick={() => setViewMode('split')}
-                className="ml-2 text-slate-400 hover:text-white transition p-0.5"
-                title="Restore Split View"
-              >
-                <Minimize2 size={12} />
-              </button>
-            )}
+          {/* Top Pill Banner & Interactive Regional Location Switcher */}
+          <div className="absolute top-20 left-6 right-6 z-25 flex flex-wrap items-center justify-between gap-2 p-2 rounded-2xl bg-slate-950/90 backdrop-blur-xl border border-sky-500/40 shadow-2xl pointer-events-auto">
+            <div className="flex items-center gap-2 px-2 text-sky-300 text-xs font-bold">
+              <span>📦 3D Regional Volumetric Box View</span>
+              <span className="text-slate-400 text-[11px] font-normal hidden xl:inline">
+                | {VOLUMETRIC_REGIONS[volumetricRegion]?.name} - {VOLUMETRIC_REGIONS[volumetricRegion]?.subtitle}
+              </span>
+            </div>
+
+            {/* Location Switcher Pills */}
+            <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+              {(Object.keys(VOLUMETRIC_REGIONS) as VolumetricRegionKey[]).map((rKey) => {
+                const reg = VOLUMETRIC_REGIONS[rKey];
+                const active = volumetricRegion === rKey;
+                return (
+                  <button
+                    key={rKey}
+                    onClick={() => setVolumetricRegion(rKey)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
+                      active
+                        ? 'bg-gradient-to-r from-cyan-500 to-sky-600 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                    }`}
+                    title={`Change Volumetric Box location to ${reg.name} (${reg.minLat}° to ${reg.maxLat}°N/S, ${reg.minLon}° to ${reg.maxLon}°E)`}
+                  >
+                    {reg.name}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Maximize / Restore Split View Button */}
+            <div className="flex items-center">
+              {viewMode === 'split' ? (
+                <button
+                  onClick={() => setViewMode('box')}
+                  className="text-slate-400 hover:text-white transition p-1.5 rounded-xl hover:bg-slate-800"
+                  title="Maximize Volumetric Box View"
+                >
+                  <Maximize2 size={13} />
+                </button>
+              ) : (
+                <button
+                  onClick={() => setViewMode('split')}
+                  className="text-slate-400 hover:text-white transition p-1.5 rounded-xl hover:bg-slate-800"
+                  title="Restore Split View"
+                >
+                  <Minimize2 size={13} />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* 3D Canvas for Regional Volumetric Box */}

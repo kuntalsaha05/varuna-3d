@@ -5,9 +5,102 @@ export type ViewMode = 'split' | 'globe' | 'box';
 export type OceanVariable = 'temp' | 'sal' | 'sst' | 'chlorophyll';
 export type PresetRegion = 'all' | 'arabian_sea' | 'bay_of_bengal' | 'equator';
 
+export type VolumetricRegionKey = 'all' | 'bay_of_bengal' | 'arabian_sea' | 'equator' | 'south_indian_ocean';
+
+export interface VolumetricRegionConfig {
+  id: VolumetricRegionKey;
+  name: string;
+  subtitle: string;
+  minLat: number;
+  maxLat: number;
+  minLon: number;
+  maxLon: number;
+  latLabels: { label: string; offset: number }[];
+  lonLabel: { label: string; offset: number };
+}
+
+export const VOLUMETRIC_REGIONS: Record<VolumetricRegionKey, VolumetricRegionConfig> = {
+  all: {
+    id: 'all',
+    name: 'Full Basin',
+    subtitle: 'Entire Indian Ocean Argo Fleet (0m to 2000m)',
+    minLat: -30.0,
+    maxLat: 30.0,
+    minLon: 30.0,
+    maxLon: 120.0,
+    latLabels: [
+      { label: '20°N', offset: -14 },
+      { label: '0°EQ', offset: 0 },
+      { label: '20°S', offset: 14 }
+    ],
+    lonLabel: { label: '75°E', offset: -10 }
+  },
+  bay_of_bengal: {
+    id: 'bay_of_bengal',
+    name: 'Bay of Bengal',
+    subtitle: 'Vertical Section (0m to 2000m)',
+    minLat: 8.0,
+    maxLat: 22.0,
+    minLon: 80.0,
+    maxLon: 95.0,
+    latLabels: [
+      { label: '20°N', offset: -14 },
+      { label: '15°N', offset: 0 },
+      { label: '10°N', offset: 14 }
+    ],
+    lonLabel: { label: '90°E', offset: -10 }
+  },
+  arabian_sea: {
+    id: 'arabian_sea',
+    name: 'Arabian Sea',
+    subtitle: 'Upwelling & Salinity Core (0m to 2000m)',
+    minLat: 8.0,
+    maxLat: 24.0,
+    minLon: 58.0,
+    maxLon: 76.0,
+    latLabels: [
+      { label: '22°N', offset: -14 },
+      { label: '16°N', offset: 0 },
+      { label: '10°N', offset: 14 }
+    ],
+    lonLabel: { label: '68°E', offset: -10 }
+  },
+  equator: {
+    id: 'equator',
+    name: 'Equatorial Indian Ocean',
+    subtitle: 'Wyrtki Jet & Dynamic Thermocline Ridge',
+    minLat: -8.0,
+    maxLat: 6.0,
+    minLon: 65.0,
+    maxLon: 95.0,
+    latLabels: [
+      { label: '5°N', offset: -14 },
+      { label: '0°EQ', offset: 0 },
+      { label: '5°S', offset: 14 }
+    ],
+    lonLabel: { label: '80°E', offset: -10 }
+  },
+  south_indian_ocean: {
+    id: 'south_indian_ocean',
+    name: 'South Indian Ocean',
+    subtitle: 'Subtropical Gyre & Deep Water Formation',
+    minLat: -28.0,
+    maxLat: -8.0,
+    minLon: 55.0,
+    maxLon: 95.0,
+    latLabels: [
+      { label: '10°S', offset: -14 },
+      { label: '18°S', offset: 0 },
+      { label: '26°S', offset: 14 }
+    ],
+    lonLabel: { label: '75°E', offset: -10 }
+  }
+};
+
 interface AppState {
   // Mode & Layer Controls
   viewMode: ViewMode;
+  volumetricRegion: VolumetricRegionKey;
   activeVariable: OceanVariable;
   selectedDepth: number;
   timeIndex: number;
@@ -66,6 +159,7 @@ interface AppState {
   
   // Actions
   setViewMode: (mode: ViewMode) => void;
+  setVolumetricRegion: (region: VolumetricRegionKey) => void;
   setActiveVariable: (v: OceanVariable) => void;
   setSelectedDepth: (d: number) => void;
   setTimeIndex: (t: number) => void;
@@ -109,6 +203,7 @@ interface AppState {
 
 export const useStore = create<AppState>((set) => ({
   viewMode: 'split',
+  volumetricRegion: 'bay_of_bengal',
   activeVariable: 'temp',
   selectedDepth: 5.0,
   timeIndex: -1,
@@ -159,6 +254,7 @@ export const useStore = create<AppState>((set) => ({
   selectedAnomaly: null,
   
   setViewMode: (mode) => set({ viewMode: mode }),
+  setVolumetricRegion: (region) => set({ volumetricRegion: region }),
   setActiveVariable: (v) => set({ 
     activeVariable: v,
     colorPalette: v === 'sal' ? 'haline' : (v === 'chlorophyll' ? 'algae' : 'thermal')
