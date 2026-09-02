@@ -10,15 +10,17 @@ export const OceanVolume: React.FC = () => {
   const {
     activeVariable,
     selectedDepth,
+    setSelectedDepth,
     timeIndex,
     verticalExaggeration,
     setVerticalExaggeration,
     colorPalette,
-    layerOpacity
+    layerOpacity,
+    selectedFloatId,
+    setSelectedFloatId
   } = useStore();
 
   const [sliceData, setSliceData] = useState<any>(null);
-  const beaconRef = useRef<THREE.Group>(null);
 
   useEffect(() => {
     axios.get('http://127.0.0.1:8000/api/v1/slice/depth', {
@@ -84,19 +86,19 @@ export const OceanVolume: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
-    // Draw Vertical Ocean Thermal Gradient (Red surface -> Yellow thermocline -> Green -> Cyan -> Deep Blue Abyssal)
+    // Vertical Ocean Thermal Gradient
     const grad = ctx.createLinearGradient(0, 0, 0, 512);
-    grad.addColorStop(0.00, '#e63946'); // Surface 29°C
-    grad.addColorStop(0.12, '#f77f00'); // Subsurface 26°C
-    grad.addColorStop(0.24, '#fcbf49'); // Upper Thermocline 22°C
-    grad.addColorStop(0.40, '#06d6a0'); // Lower Thermocline 16°C
-    grad.addColorStop(0.60, '#118ab2'); // Mesopelagic 10°C
-    grad.addColorStop(0.85, '#073b4c'); // Bathypelagic 5°C
-    grad.addColorStop(1.00, '#03162a'); // Abyssal Bed 2°C
+    grad.addColorStop(0.00, '#e63946');
+    grad.addColorStop(0.12, '#f77f00');
+    grad.addColorStop(0.24, '#fcbf49');
+    grad.addColorStop(0.40, '#06d6a0');
+    grad.addColorStop(0.60, '#118ab2');
+    grad.addColorStop(0.85, '#073b4c');
+    grad.addColorStop(1.00, '#03162a');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 1024, 512);
 
-    // Draw Dynamic Wavy White Isotherm Contour Lines traversing across the cutaway face
+    // White Isotherm Contour Lines traversing across the cutaway face
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
     ctx.lineWidth = 2.5;
 
@@ -104,7 +106,6 @@ export const OceanVolume: React.FC = () => {
     isothermDepths.forEach((baseY, idx) => {
       ctx.beginPath();
       for (let x = 0; x <= 1024; x += 10) {
-        // Monsoonal thermocline internal wave displacement
         const wave = Math.sin(x * 0.008 + idx * 0.7) * 14 + Math.cos(x * 0.016) * 6;
         const y = baseY + wave;
         if (x === 0) ctx.moveTo(x, y);
@@ -112,7 +113,6 @@ export const OceanVolume: React.FC = () => {
       }
       ctx.stroke();
 
-      // Secondary fine isotherm
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
       ctx.lineWidth = 1.2;
       ctx.beginPath();
@@ -140,14 +140,11 @@ export const OceanVolume: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
-    // Deep blue ocean
     ctx.fillStyle = '#05192d';
     ctx.fillRect(0, 0, 512, 512);
 
-    // Coastline geometry & continental shelf shading (Bay of Bengal / India East Coast)
     ctx.fillStyle = '#1b4332';
     ctx.beginPath();
-    // India coastline outline on top face
     ctx.moveTo(0, 0);
     ctx.lineTo(160, 0);
     ctx.lineTo(140, 120);
@@ -158,7 +155,6 @@ export const OceanVolume: React.FC = () => {
     ctx.closePath();
     ctx.fill();
 
-    // Myanmar / Andaman coast outline
     ctx.fillStyle = '#1b4332';
     ctx.beginPath();
     ctx.moveTo(512, 0);
@@ -170,7 +166,6 @@ export const OceanVolume: React.FC = () => {
     ctx.closePath();
     ctx.fill();
 
-    // Grid coordinates lines
     ctx.strokeStyle = 'rgba(0, 245, 212, 0.25)';
     ctx.lineWidth = 1;
     for (let i = 100; i < 512; i += 100) {
@@ -194,7 +189,6 @@ export const OceanVolume: React.FC = () => {
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
       const y = pos.getY(i);
-      // Mountainous bathymetric ridges & Ninety East Ridge trench relief
       const ridge = Math.sin(x * 0.3) * 1.5 + Math.cos(y * 0.4) * 1.2 + Math.sin(x * 0.8 + y * 0.6) * 0.8;
       pos.setZ(i, ridge);
     }
@@ -202,16 +196,19 @@ export const OceanVolume: React.FC = () => {
     return geo;
   }, [BOX_WIDTH, BOX_DEPTH]);
 
-  // Vertical Profiler Sensor Depth Beads
-  const beadDepths = [0, 200, 500, 1000, 1500, 2000];
+  // Distributed In-Situ Argo Profiling Stations across Bay of Bengal
+  const profilerStations = useMemo(() => [
+    { id: 6902903, lat: 15.2, lon: 88.5, label: 'Central BoB #6902903' },
+    { id: 2902088, lat: 18.5, lon: 89.8, label: 'North BoB Plume #2902088' },
+    { id: 2902120, lat: 12.8, lon: 83.5, label: 'West Boundary EICC #2902120' },
+    { id: 6903112, lat: 11.2, lon: 92.6, label: 'Andaman Basin #6903112' },
+    { id: 2902341, lat: 9.0,  lon: 85.2, label: 'Sri Lanka Dome #2902341' },
+    { id: 6902740, lat: 16.8, lon: 84.2, label: 'Coastal Upwelling #6902740' },
+    { id: 2902419, lat: 13.5, lon: 87.0, label: 'Cyclonic Eddy #2902419' },
+    { id: 6902988, lat: 19.8, lon: 91.2, label: 'Myanmar Shelf #6902988' }
+  ], []);
 
-  useFrame(({ clock }) => {
-    if (beaconRef.current) {
-      const t = clock.getElapsedTime();
-      const pulse = 1.0 + Math.sin(t * 3.0) * 0.2;
-      beaconRef.current.scale.set(pulse, pulse, pulse);
-    }
-  });
+  const beadDepths = [5, 50, 100, 250, 500, 1000, 1500, 2000];
 
   return (
     <group>
@@ -314,7 +311,6 @@ export const OceanVolume: React.FC = () => {
           wireframe={false}
         />
       </mesh>
-      {/* Bathymetric Wireframe Accents */}
       <mesh
         geometry={seabedGeometry}
         position={[0, -boxHeight + 0.05, 0]}
@@ -329,56 +325,83 @@ export const OceanVolume: React.FC = () => {
       </mesh>
 
       {/* ─────────────────────────────────────────────────────────────
-          4. VERTICAL ARGO PROFILER SENSOR STRING WITH GLOWING BEADS
+          4. DISTRIBUTED ARGO PROFILING STATIONS & 3D WATER COLUMN BEADS
           ───────────────────────────────────────────────────────────── */}
-      <group position={[2.5, 0, 4.0]}>
-        {/* Vertical Profiling Cable */}
-        <lineSegments>
-          <bufferGeometry>
-            <bufferAttribute
-              attach="attributes-position"
-              count={2}
-              array={new Float32Array([0, 0, 0, 0, -boxHeight, 0])}
-              itemSize={3}
-            />
-          </bufferGeometry>
-          <lineDashedMaterial color="#ffffff" dashSize={0.4} gapSize={0.2} linewidth={2} />
-        </lineSegments>
+      {profilerStations.map((st) => {
+        const x = Math.max(-BOX_WIDTH / 2 + 2, Math.min(BOX_WIDTH / 2 - 2, ((st.lon - 80.0) / 15.0 - 0.5) * BOX_WIDTH));
+        const z = Math.max(-BOX_DEPTH / 2 + 2, Math.min(BOX_DEPTH / 2 - 2, -((st.lat - 8.0) / 14.0 - 0.5) * BOX_DEPTH));
+        const isSelected = selectedFloatId === st.id;
 
-        {/* Floating Surface Buoy */}
-        <mesh position={[0, 0.6, 0]}>
-          <cylinderGeometry args={[0.4, 0.4, 0.8, 16]} />
-          <meshStandardMaterial color="#fbbf24" emissive="#f59e0b" emissiveIntensity={0.6} />
-        </mesh>
-        <mesh position={[0, 1.2, 0]}>
-          <cylinderGeometry args={[0.05, 0.05, 0.8, 8]} />
-          <meshBasicMaterial color="#ffffff" />
-        </mesh>
-        <group ref={beaconRef} position={[0, 1.6, 0]}>
-          <mesh>
-            <sphereGeometry args={[0.2, 12, 12]} />
-            <meshBasicMaterial color="#ef4444" />
-          </mesh>
-        </group>
-
-        {/* Glowing Profiling Depth Beads (0m, 200m, 500m, 1000m, 1500m, 2000m) */}
-        {beadDepths.map((d) => {
-          const y = -(d / 2000.0) * boxHeight;
-          return (
-            <group key={d} position={[0, y, 0]}>
-              <mesh>
-                <sphereGeometry args={[0.3, 16, 16]} />
-                <meshStandardMaterial
-                  color="#ffffff"
-                  emissive="#00f5d4"
-                  emissiveIntensity={1.8}
-                  roughness={0.1}
+        return (
+          <group key={st.id} position={[x, 0, z]}>
+            {/* Vertical Profiling Wire */}
+            <lineSegments>
+              <bufferGeometry>
+                <bufferAttribute
+                  attach="attributes-position"
+                  count={2}
+                  array={new Float32Array([0, 0, 0, 0, -boxHeight, 0])}
+                  itemSize={3}
                 />
-              </mesh>
-            </group>
-          );
-        })}
-      </group>
+              </bufferGeometry>
+              <lineDashedMaterial color="#ffffff" dashSize={0.4} gapSize={0.2} linewidth={1.5} />
+            </lineSegments>
+
+            {/* Surface Buoy */}
+            <mesh
+              position={[0, 0.45, 0]}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedFloatId(st.id);
+              }}
+              onPointerOver={() => { document.body.style.cursor = 'pointer'; }}
+              onPointerOut={() => { document.body.style.cursor = 'auto'; }}
+            >
+              <cylinderGeometry args={[0.32, 0.32, 0.6, 14]} />
+              <meshStandardMaterial
+                color={isSelected ? '#00f5d4' : '#fbbf24'}
+                emissive={isSelected ? '#00bbf9' : '#f59e0b'}
+                emissiveIntensity={isSelected ? 1.6 : 0.8}
+              />
+            </mesh>
+
+            {/* Antenna & Beacon */}
+            <mesh position={[0, 0.95, 0]}>
+              <cylinderGeometry args={[0.04, 0.04, 0.5, 8]} />
+              <meshBasicMaterial color="#ffffff" />
+            </mesh>
+
+            {/* Glowing Depth-Resolved Observation Beads across Water Column */}
+            {beadDepths.map((d) => {
+              const y = -(d / 2000.0) * boxHeight;
+              const ratio = d / 2000.0;
+              const color = ratio < 0.05 ? '#ef4444' : ratio < 0.15 ? '#f97316' : ratio < 0.3 ? '#eab308' : ratio < 0.6 ? '#06b6d4' : '#3b82f6';
+
+              return (
+                <group key={d} position={[0, y, 0]}>
+                  <mesh
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedFloatId(st.id);
+                      setSelectedDepth(d);
+                    }}
+                    onPointerOver={() => { document.body.style.cursor = 'pointer'; }}
+                    onPointerOut={() => { document.body.style.cursor = 'auto'; }}
+                  >
+                    <sphereGeometry args={[0.26, 14, 14]} />
+                    <meshStandardMaterial
+                      color={color}
+                      emissive={color}
+                      emissiveIntensity={1.5}
+                      roughness={0.2}
+                    />
+                  </mesh>
+                </group>
+              );
+            })}
+          </group>
+        );
+      })}
 
       {/* ─────────────────────────────────────────────────────────────
           5. 3D COORDINATE AXES LABELS (Latitude, Longitude & Depth)

@@ -14,6 +14,24 @@ export function geoTo3D(lat: number, lon: number, depth: number = 0, exaggeratio
 }
 
 /**
+ * Transforms Geographic (Lat, Lon, Depth) to 3D Cartesian coordinates inside Bay of Bengal Volumetric Box
+ */
+export function geoToBox3D(
+  lat: number,
+  lon: number,
+  depth: number = 0,
+  boxHeight: number = 18,
+  boxWidth: number = 36,
+  boxDepth: number = 28
+): [number, number, number] {
+  // Bay of Bengal Bounds: Lon 80°E to 95°E, Lat 8°N to 22°N
+  const x = Math.max(-boxWidth / 2, Math.min(boxWidth / 2, ((lon - 80.0) / 15.0 - 0.5) * boxWidth));
+  const z = Math.max(-boxDepth / 2, Math.min(boxDepth / 2, -((lat - 8.0) / 14.0 - 0.5) * boxDepth));
+  const y = -(depth / MAX_DEPTH) * boxHeight;
+  return [x, y, z];
+}
+
+/**
  * Transforms Geographic (Lat, Lon, Depth) to 3D Spherical coordinates on the Earth Globe
  */
 export function geoToSpherical(lat: number, lon: number, radius: number = EARTH_RADIUS, depth: number = 0): [number, number, number] {
