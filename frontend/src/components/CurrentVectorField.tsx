@@ -64,7 +64,7 @@ export const CurrentVectorField: React.FC = () => {
         p.life = 0;
       }
 
-      // Geostrophic vector currents
+      // Geostrophic hydrodynamic vectors
       const wyrtkiZone = Math.exp(-Math.pow(p.lat - 1.5, 2) / 6.0);
       const u_wyrtki = wyrtkiZone * 1.4;
       const v_wyrtki = wyrtkiZone * 0.1;

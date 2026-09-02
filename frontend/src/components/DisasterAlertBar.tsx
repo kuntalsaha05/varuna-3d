@@ -26,7 +26,8 @@ export const DisasterAlertBar: React.FC = () => {
   }, [alerts]);
 
   if (!alerts.length) return null;
-  const curr = alerts[activeAlertIdx];
+  const curr = alerts[activeAlertIdx] || alerts[0];
+  if (!curr) return null;
 
   return (
     <div className={`absolute top-[96px] left-1/2 -translate-x-1/2 z-25 max-w-2xl w-full px-4 select-none pointer-events-auto transition-all ${disasterMode ? 'opacity-100 scale-100' : 'opacity-95'}`}>

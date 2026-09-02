@@ -24,9 +24,9 @@ export const AiAnomalyModal: React.FC = () => {
 
   if (!selectedAnomaly) return null;
 
-  const isHot = selectedAnomaly.type.includes('Heatwave');
-  const isUpwelling = selectedAnomaly.type.includes('Upwelling');
-  const isSalinity = selectedAnomaly.type.includes('Barrier') || selectedAnomaly.type.includes('Salinity');
+  const isHot = selectedAnomaly?.type?.includes('Heatwave') ?? false;
+  const isUpwelling = selectedAnomaly?.type?.includes('Upwelling') ?? false;
+  const isSalinity = (selectedAnomaly?.type?.includes('Barrier') || selectedAnomaly?.type?.includes('Salinity')) ?? false;
 
   const handleInspectIn3D = () => {
     if (selectedAnomaly.lat && selectedAnomaly.lon) {

@@ -160,13 +160,13 @@ export const OceanVolume: React.FC = () => {
 
       {/* 6. Axis Labels: Longitude & Latitude Corner Tags */}
       <Html position={[0, 0.5, 16.5]} center distanceFactor={30}>
-        <div className="px-2.5 py-0.5 rounded-full bg-slate-950/90 text-cyan-400 border border-cyan-700/60 text-[10px] font-mono font-bold tracking-wider">
+        <div className="px-2.5 py-0.5 rounded-full bg-slate-950/90 text-cyan-400 border border-cyan-700/60 text-[10px] font-mono font-bold tracking-wider pointer-events-none">
           LONGITUDE TRANSECT: 65°E ─── 90°E (Arabian Sea to Bay of Bengal)
         </div>
       </Html>
 
-      <Html position={[21.5, 0.5, 0]} center distanceFactor={30} rotation={[0, -Math.PI / 2, 0]}>
-        <div className="px-2.5 py-0.5 rounded-full bg-slate-950/90 text-sky-400 border border-sky-700/60 text-[10px] font-mono font-bold tracking-wider">
+      <Html position={[21.5, 0.5, 0]} center distanceFactor={30}>
+        <div className="px-2.5 py-0.5 rounded-full bg-slate-950/90 text-sky-400 border border-sky-700/60 text-[10px] font-mono font-bold tracking-wider pointer-events-none">
           LATITUDE TRANSECT: 5°N ─── 25°N (Equator to Coast)
         </div>
       </Html>
