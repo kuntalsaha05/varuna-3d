@@ -16,11 +16,16 @@ export const AiAnomalyLayer: React.FC = () => {
     setAiAnomalies,
     selectedAnomaly,
     setSelectedAnomaly,
+    showModalExpanded,
+    showWarningModal,
+    showHelpModal,
+    showStoryTour,
     viewMode,
     verticalExaggeration
   } = useStore();
 
   const pulseRef = useRef<THREE.Group>(null);
+  const anyModalOpen = showModalExpanded || showWarningModal || showHelpModal || showStoryTour || !!selectedAnomaly;
 
   useEffect(() => {
     if (!showAiAnomalies) return;
@@ -86,20 +91,22 @@ export const AiAnomalyLayer: React.FC = () => {
               <meshBasicMaterial color={color} transparent opacity={0.6} side={THREE.DoubleSide} />
             </mesh>
 
-            {/* HTML Floating Anomaly Tag */}
-            <Html position={[0, 0.8, 0]} center distanceFactor={24}>
-              <div
-                onClick={() => setSelectedAnomaly(anom)}
-                className="cursor-pointer select-none px-2 py-1 rounded-xl bg-slate-950/90 backdrop-blur-md border shadow-lg text-[10px] font-bold flex items-center gap-1.5 whitespace-nowrap transition-transform hover:scale-110"
-                style={{ borderColor: `${color}88`, color: '#ffffff' }}
-              >
-                {isHot ? <Flame size={12} className="text-rose-400" /> : <Sparkles size={12} className="text-cyan-400" />}
-                <span>{anom.type}</span>
-                <span className="font-mono text-[9px] px-1 py-0.2 rounded" style={{ backgroundColor: `${color}33`, color }}>
-                  {anom.anomaly_delta}
-                </span>
-              </div>
-            </Html>
+            {/* HTML Floating Anomaly Tag (Hidden when any modal is open) */}
+            {!anyModalOpen && (
+              <Html position={[0, 0.8, 0]} center distanceFactor={24}>
+                <div
+                  onClick={() => setSelectedAnomaly(anom)}
+                  className="cursor-pointer select-none px-2 py-1 rounded-xl bg-slate-950/90 backdrop-blur-md border shadow-lg text-[10px] font-bold flex items-center gap-1.5 whitespace-nowrap transition-transform hover:scale-110"
+                  style={{ borderColor: `${color}88`, color: '#ffffff' }}
+                >
+                  {isHot ? <Flame size={12} className="text-rose-400" /> : <Sparkles size={12} className="text-cyan-400" />}
+                  <span>{anom.type}</span>
+                  <span className="font-mono text-[9px] px-1 py-0.2 rounded" style={{ backgroundColor: `${color}33`, color }}>
+                    {anom.anomaly_delta}
+                  </span>
+                </div>
+              </Html>
+            )}
           </group>
         );
       })}

@@ -19,7 +19,6 @@ export const CurrentVectorField: React.FC = () => {
 
   const COUNT = Math.max(1200, particleDensity || 1600);
 
-  // Basin Geographic Domain: Full Indian Ocean + Arabian Sea + Bay of Bengal + Equator
   const MIN_LAT = -10.0;
   const MAX_LAT = 26.0;
   const MIN_LON = 45.0;
@@ -49,14 +48,12 @@ export const CurrentVectorField: React.FC = () => {
   useFrame(() => {
     if (!showCurrents || !pointsRef.current) return;
 
-    // Depth attenuation factor: surface currents are strongest, decay through thermocline
     const depthDecay = Math.exp(-selectedDepth / 350.0);
 
     for (let i = 0; i < COUNT; i++) {
       const p = particles[i];
       p.life += 1;
 
-      // Respawn particle if it expires or leaves ocean domain
       if (
         p.life > p.maxLife ||
         p.lat < MIN_LAT || p.lat > MAX_LAT ||
@@ -67,45 +64,34 @@ export const CurrentVectorField: React.FC = () => {
         p.life = 0;
       }
 
-      // ─────────────────────────────────────────────────────────────
-      // FULL INDIAN OCEAN HYDRODYNAMIC CURRENT VECTOR FORMULATION:
-      // ─────────────────────────────────────────────────────────────
-      
-      // 1. Equatorial Wyrtki Jet (0°N - 5°N): Strong eastward flow
+      // Geostrophic vector currents
       const wyrtkiZone = Math.exp(-Math.pow(p.lat - 1.5, 2) / 6.0);
       const u_wyrtki = wyrtkiZone * 1.4;
       const v_wyrtki = wyrtkiZone * 0.1;
 
-      // 2. Somali Current Jet (Western Boundary 45°E - 62°E, 0°N - 14°N): Intense NE flow
       const somaliCore = Math.exp(-Math.pow(p.lon - 54.0, 2) / 30.0) * (p.lat > 0 && p.lat < 16 ? 1.0 : 0.0);
       const u_somali = somaliCore * 1.6;
       const v_somali = somaliCore * 1.8;
 
-      // 3. Arabian Sea Clockwise Gyre (10°N - 24°N, 58°E - 75°E)
       const asCore = (p.lon >= 58 && p.lon <= 77 && p.lat >= 8 && p.lat <= 25) ? 1.0 : 0.0;
       const u_as = asCore * (-0.5 * Math.sin((p.lat - 15) * 0.22) + 0.3);
       const v_as = asCore * (0.6 * Math.cos((p.lon - 66) * 0.18));
 
-      // 4. West India Coastal Current (WICC, along 71°E - 77°E, southward flow)
       const wiccCore = (p.lon >= 71 && p.lon <= 76 && p.lat >= 8 && p.lat <= 20) ? 1.0 : 0.0;
       const u_wicc = wiccCore * -0.2;
       const v_wicc = wiccCore * -0.8;
 
-      // 5. Bay of Bengal Recirculation & East India Coastal Current (EICC, 80°E - 95°E)
       const bobCore = (p.lon >= 78 && p.lon <= 96 && p.lat >= 6 && p.lat <= 24) ? 1.0 : 0.0;
       const u_bob = bobCore * (0.45 * Math.cos((p.lat - 14) * 0.2) - 0.2);
       const v_bob = bobCore * (-0.5 * Math.sin((p.lon - 88) * 0.18) + 0.25);
 
-      // 6. South Equatorial Current (SEC, south of Equator -10°S to -2°S): Broad westward flow
       const secCore = (p.lat <= 0) ? 1.0 : 0.0;
       const u_sec = secCore * -0.85;
       const v_sec = secCore * -0.15;
 
-      // Combine geostrophic velocities with particle speed & depth attenuation
       const u = (u_wyrtki + u_somali + u_as + u_wicc + u_bob + u_sec) * p.speed * depthDecay;
       const v = (v_wyrtki + v_somali + v_as + v_wicc + v_bob + v_sec) * p.speed * depthDecay;
 
-      // Step advection
       p.lon += u * 0.065;
       p.lat += v * 0.065;
 
@@ -127,7 +113,6 @@ export const CurrentVectorField: React.FC = () => {
       const speedNorm = Math.min(1.0, speedMagnitude / 1.5);
       const alpha = Math.sin((p.life / p.maxLife) * Math.PI);
 
-      // Color mapping: Cyan (moderate) -> Yellow/Coral (fast currents like Somali Jet)
       colors[idx] = (0.1 + speedNorm * 0.85) * alpha;
       colors[idx + 1] = (0.75 + speedNorm * 0.2) * alpha;
       colors[idx + 2] = (1.0 - speedNorm * 0.6) * alpha;
@@ -166,4 +151,3 @@ export const CurrentVectorField: React.FC = () => {
     </points>
   );
 };
-
