@@ -33,11 +33,14 @@ export const AiAnomalyLayer: React.FC = () => {
       .catch(console.error);
   }, [showAiAnomalies, activeVariable, selectedDepth]);
 
-  useFrame(({ clock }) => {
+  useFrame(({ camera, clock }) => {
     if (pulseRef.current) {
-      const s = 1.0 + Math.sin(clock.getElapsedTime() * 3.5) * 0.25;
+      const camDist = camera.position.length();
+      const zoomScale = Math.max(0.45, Math.min(2.5, Math.pow(camDist / 42.0, 0.85)));
+      const pulse = 1.0 + Math.sin(clock.getElapsedTime() * 3.5) * 0.25;
       pulseRef.current.children.forEach(mesh => {
-        mesh.scale.set(s, s, s);
+        const finalScale = zoomScale * pulse;
+        mesh.scale.set(finalScale, finalScale, finalScale);
       });
     }
   });
